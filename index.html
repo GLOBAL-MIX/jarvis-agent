@@ -1,238 +1,932 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARVIS - AI Workspace Orchestrator</title>
-    <style>
-        :root {
-            --bg-color: #0a0f1d;
-            --panel-color: #131a30;
-            --accent-color: #00f0ff;
-            --text-color: #e2e8f0;
-            --text-muted: #64748b;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JARVIS — AI Workspace Orchestrator</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050810;
+  --panel: #080d1c;
+  --arc: #00c8ff;
+  --arc2: #0066ff;
+  --arc3: #ff6a00;
+  --glow: rgba(0,200,255,0.15);
+  --red: #ff3b3b;
+  --green: #00ff9d;
+  --text: #c8deff;
+  --muted: #3a4d6e;
+  --border: rgba(0,200,255,0.12);
+}
 
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            height: 100vh;
-        }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* Sidebar Settings Panel */
-        .sidebar {
-            width: 300px;
-            background-color: var(--panel-color);
-            border-right: 1px solid rgba(0, 240, 255, 0.2);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+body {
+  font-family: 'Exo 2', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  position: relative;
+}
 
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--accent-color);
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
-        }
+/* ─── ANIMATED BACKGROUND ─── */
+.bg-grid {
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridPulse 8s ease-in-out infinite;
+}
+@keyframes gridPulse {
+  0%,100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
 
-        .setting-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+.bg-radial {
+  position: fixed; inset: 0; z-index: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,100,255,0.07) 0%, transparent 70%);
+  animation: radialShift 12s ease-in-out infinite;
+}
+@keyframes radialShift {
+  0%,100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
 
-        label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-        }
+/* Scan line effect */
+.scanline {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+}
 
-        select, input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(200, 200, 200, 0.2);
-            padding: 10px;
-            border-radius: 6px;
-            color: white;
-            font-size: 14px;
-        }
+/* ─── LAYOUT ─── */
+.app {
+  position: relative; z-index: 2;
+  display: flex;
+  width: 100%; height: 100vh;
+  gap: 0;
+}
 
-        select:focus, input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: linear-gradient(180deg, rgba(8,13,28,0.98) 0%, rgba(5,8,16,0.98) 100%);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
 
-        /* Main Chat Simulation Window */
-        .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: radial-gradient(circle at center, #111827 0%, #0a0f1d 100%);
-        }
+.sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--arc), transparent);
+  animation: topLine 3s ease-in-out infinite;
+}
+@keyframes topLine {
+  0%,100% { opacity: 0.4; } 50% { opacity: 1; }
+}
 
-        .chat-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+.logo-area {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--border);
+}
 
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            background-color: #10b981;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #10b981;
-        }
+.logo {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: var(--arc);
+  text-shadow: 0 0 20px rgba(0,200,255,0.6), 0 0 40px rgba(0,200,255,0.2);
+  line-height: 1;
+}
+.logo-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  margin-top: 4px;
+  text-transform: uppercase;
+}
 
-        .messages-window {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+/* ARC REACTOR mini */
+.reactor {
+  width: 64px; height: 64px;
+  margin: 20px auto;
+  position: relative;
+}
+.reactor-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid;
+  animation: spin linear infinite;
+}
+.reactor-ring:nth-child(1) {
+  inset: 0;
+  border-color: rgba(0,200,255,0.6);
+  animation-duration: 8s;
+}
+.reactor-ring:nth-child(2) {
+  inset: 6px;
+  border-color: rgba(0,100,255,0.5);
+  border-style: dashed;
+  animation-duration: 5s;
+  animation-direction: reverse;
+}
+.reactor-ring:nth-child(3) {
+  inset: 14px;
+  border-color: rgba(0,200,255,0.3);
+  animation-duration: 3s;
+}
+.reactor-core {
+  position: absolute;
+  inset: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00c8ff 0%, #0044aa 60%, transparent 100%);
+  box-shadow: 0 0 12px #00c8ff, 0 0 30px rgba(0,200,255,0.4);
+  animation: corePulse 2s ease-in-out infinite;
+}
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes corePulse {
+  0%,100% { box-shadow: 0 0 12px #00c8ff, 0 0 30px rgba(0,200,255,0.4); }
+  50% { box-shadow: 0 0 20px #00c8ff, 0 0 50px rgba(0,200,255,0.6); }
+}
 
-        .message {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            line-height: 1.5;
-        }
+.sidebar-body {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
 
-        .message.jarvis {
-            background-color: rgba(0, 240, 255, 0.05);
-            border: 1px solid rgba(0, 240, 255, 0.15);
-            align-self: flex-start;
-        }
+.setting-section {
+  background: rgba(0,200,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+}
 
-        .message.user {
-            background-color: #2563eb;
-            align-self: flex-end;
-        }
+.section-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--arc);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
 
-        .input-area {
-            padding: 20px;
-            display: flex;
-            gap: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-        }
+.field-label {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  margin-top: 10px;
+}
+.field-label:first-of-type { margin-top: 0; }
 
-        .input-area input {
-            flex: 1;
-        }
+select, input[type="password"] {
+  width: 100%;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(0,200,255,0.15);
+  padding: 9px 12px;
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+}
+select:focus, input[type="password"]:focus {
+  outline: none;
+  border-color: var(--arc);
+  box-shadow: 0 0 10px rgba(0,200,255,0.15);
+}
 
-        .btn-send {
-            background-color: var(--accent-color);
-            color: #000;
-            border: none;
-            padding: 0 24px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+/* System status */
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+}
+.status-name { color: var(--muted); }
+.status-val {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.status-val.online { background: rgba(0,255,157,0.1); color: var(--green); border: 1px solid rgba(0,255,157,0.2); }
+.status-val.standby { background: rgba(255,106,0,0.1); color: var(--arc3); border: 1px solid rgba(255,106,0,0.2); }
+.status-val.offline { background: rgba(255,59,59,0.1); color: var(--red); border: 1px solid rgba(255,59,59,0.2); }
 
-        .btn-send:hover {
-            box-shadow: 0 0 15px var(--accent-color);
-            transform: translateY(-1px);
-        }
-    </style>
+/* Quick actions */
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.qa-btn {
+  background: rgba(0,200,255,0.04);
+  border: 1px solid rgba(0,200,255,0.1);
+  color: var(--text);
+  padding: 9px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-align: left;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.qa-btn:hover {
+  background: rgba(0,200,255,0.1);
+  border-color: rgba(0,200,255,0.4);
+  color: var(--arc);
+  transform: translateX(3px);
+}
+.qa-icon {
+  width: 18px; height: 18px;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+/* ─── MAIN AREA ─── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Header */
+.header {
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(5,8,16,0.8);
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+}
+.header-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: var(--arc);
+}
+.header-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
+
+.header-metrics {
+  display: flex;
+  gap: 24px;
+}
+.metric {
+  text-align: right;
+}
+.metric-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  color: var(--arc);
+  line-height: 1;
+}
+.metric-label {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Chat messages */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scroll-behavior: smooth;
+}
+.messages::-webkit-scrollbar { width: 4px; }
+.messages::-webkit-scrollbar-thumb { background: rgba(0,200,255,0.2); border-radius: 2px; }
+
+.msg {
+  display: flex;
+  gap: 12px;
+  animation: msgIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.msg.user { flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+.msg.jarvis .msg-avatar {
+  background: rgba(0,200,255,0.1);
+  border: 1px solid rgba(0,200,255,0.3);
+  color: var(--arc);
+}
+.msg.user .msg-avatar {
+  background: rgba(0,100,255,0.2);
+  border: 1px solid rgba(0,100,255,0.4);
+  color: #6699ff;
+}
+
+.msg-body {
+  max-width: 68%;
+}
+
+.msg-meta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+.msg.user .msg-meta { text-align: right; }
+
+.msg-bubble {
+  padding: 12px 16px;
+  border-radius: 2px 8px 8px 8px;
+  line-height: 1.6;
+  font-size: 14px;
+  position: relative;
+}
+.msg.jarvis .msg-bubble {
+  background: rgba(0,200,255,0.04);
+  border: 1px solid rgba(0,200,255,0.12);
+  border-left: 2px solid var(--arc);
+  color: var(--text);
+}
+.msg.user .msg-bubble {
+  background: rgba(0,80,200,0.2);
+  border: 1px solid rgba(0,100,255,0.25);
+  border-right: 2px solid #4488ff;
+  border-radius: 8px 2px 8px 8px;
+  color: #ddeeff;
+}
+
+/* Typing indicator */
+.typing-indicator {
+  display: none;
+  gap: 12px;
+  animation: msgIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.typing-indicator.visible { display: flex; }
+.typing-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 16px;
+  background: rgba(0,200,255,0.04);
+  border: 1px solid rgba(0,200,255,0.12);
+  border-left: 2px solid var(--arc);
+  border-radius: 2px 8px 8px 8px;
+}
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--arc);
+  animation: bounce 1.2s ease-in-out infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.15s; }
+.dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce {
+  0%,60%,100% { transform: translateY(0); opacity: 0.3; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ─── INPUT AREA ─── */
+.input-zone {
+  padding: 16px 28px 20px;
+  border-top: 1px solid var(--border);
+  background: rgba(5,8,16,0.9);
+  flex-shrink: 0;
+}
+
+.input-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(0,200,255,0.15);
+  border-radius: 6px;
+  padding: 4px 4px 4px 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-row:focus-within {
+  border-color: rgba(0,200,255,0.5);
+  box-shadow: 0 0 20px rgba(0,200,255,0.08);
+}
+
+#userInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+  padding: 10px 0;
+  resize: none;
+}
+#userInput::placeholder { color: var(--muted); }
+
+.send-btn {
+  background: linear-gradient(135deg, #0066ff, #00c8ff);
+  border: none;
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 4px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: center;
+}
+.send-btn:hover {
+  box-shadow: 0 0 20px rgba(0,200,255,0.4);
+  transform: translateY(-1px);
+}
+.send-btn:active { transform: translateY(0); }
+
+.input-hint {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 8px;
+  letter-spacing: 1px;
+  display: flex;
+  gap: 20px;
+}
+.hint-key {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+}
+
+/* ─── HUD CORNER DECORATIONS ─── */
+.corner {
+  position: fixed;
+  width: 40px; height: 40px;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.4;
+}
+.corner-tl { top: 12px; left: 295px;
+  border-top: 2px solid var(--arc); border-left: 2px solid var(--arc); }
+.corner-tr { top: 12px; right: 12px;
+  border-top: 2px solid var(--arc); border-right: 2px solid var(--arc); }
+.corner-bl { bottom: 12px; left: 295px;
+  border-bottom: 2px solid var(--arc); border-left: 2px solid var(--arc); }
+.corner-br { bottom: 12px; right: 12px;
+  border-bottom: 2px solid var(--arc); border-right: 2px solid var(--arc); }
+
+/* Waveform visualizer */
+.waveform {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 24px;
+  margin-right: 10px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  flex-shrink: 0;
+  align-self: center;
+}
+.waveform.active { opacity: 1; }
+.wave-bar {
+  width: 3px;
+  background: var(--arc);
+  border-radius: 2px;
+  animation: wave 1s ease-in-out infinite;
+}
+.wave-bar:nth-child(1) { animation-duration: 0.8s; animation-delay: 0s; }
+.wave-bar:nth-child(2) { animation-duration: 0.6s; animation-delay: 0.1s; }
+.wave-bar:nth-child(3) { animation-duration: 1.0s; animation-delay: 0.2s; }
+.wave-bar:nth-child(4) { animation-duration: 0.7s; animation-delay: 0.05s; }
+.wave-bar:nth-child(5) { animation-duration: 0.9s; animation-delay: 0.15s; }
+@keyframes wave {
+  0%,100% { height: 4px; }
+  50% { height: 18px; }
+}
+
+/* uptime counter */
+#uptimeClock {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  color: var(--arc);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Notification toast */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(8,13,28,0.95);
+  border: 1px solid rgba(0,200,255,0.3);
+  border-left: 3px solid var(--arc);
+  padding: 12px 18px;
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: var(--text);
+  z-index: 100;
+  transform: translateX(120%);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  max-width: 300px;
+}
+.toast.show { transform: translateX(0); }
+</style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="logo">JARVIS OS</div>
-        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.05)">
-        
-        <div class="setting-group">
-            <label>Access Tier</label>
-            <select id="tierSelect" onchange="toggleTierInput()">
-                <option value="byok">Bring Your Own Key (Free Tier)</option>
-                <option value="sub">Jarvis Premium Subscriber</option>
-            </select>
-        </div>
+<div class="bg-grid"></div>
+<div class="bg-radial"></div>
+<div class="scanline"></div>
 
-        <div class="setting-group" id="apiKeyGroup">
-            <label>Google Gemini API Key</label>
-            <input type="password" id="userApiKey" placeholder="AIzaSy...">
-        </div>
+<!-- HUD corners -->
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo-area">
+      <div class="logo">JARVIS</div>
+      <div class="logo-sub">Just A Rather Very Intelligent System</div>
     </div>
 
-    <div class="chat-container">
-        <div class="chat-header">
-            <div>
-                <h3 style="margin: 0; font-size: 16px;">Core Orchestrator</h3>
-                <small style="color: var(--text-muted)">Awaiting commands...</small>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; color: var(--text-muted)">System Online</span>
-                <div class="status-dot"></div>
-            </div>
-        </div>
-
-        <div class="messages-window" id="messagesWindow">
-            <div class="message jarvis">
-                Systems initialized. Good day. I am ready to assist with your Notion workspace, email workflows, or social automations. Please select your access tier on the left panel to connect my core processors.
-            </div>
-        </div>
-
-        <div class="input-area">
-            <input type="text" id="userInput" placeholder="Ask Jarvis to execute a task...">
-            <button class="btn-send" onclick="sendMessage()">Execute</button>
-        </div>
+    <div class="reactor">
+      <div class="reactor-ring"></div>
+      <div class="reactor-ring"></div>
+      <div class="reactor-ring"></div>
+      <div class="reactor-core"></div>
     </div>
 
-    <script>
-        function toggleTierInput() {
-            const tier = document.getElementById('tierSelect').value;
-            const apiKeyGroup = document.getElementById('apiKeyGroup');
-            if (tier === 'sub') {
-                apiKeyGroup.style.display = 'none';
-            } else {
-                apiKeyGroup.style.display = 'flex';
-            }
-        }
+    <div class="sidebar-body">
 
-        function sendMessage() {
-            const input = document.getElementById('userInput');
-            const window = document.getElementById('messagesWindow');
-            if (!input.value.trim()) return;
+      <!-- Config -->
+      <div class="setting-section">
+        <div class="section-label">Configuration</div>
+        <div class="field-label">Access Tier</div>
+        <select id="tierSelect" onchange="toggleTierInput()">
+          <option value="byok">Bring Your Own Key</option>
+          <option value="sub">Jarvis Premium</option>
+        </select>
+        <div id="apiKeyGroup">
+          <div class="field-label">Gemini API Key</div>
+          <input type="password" id="userApiKey" placeholder="AIzaSy...">
+        </div>
+      </div>
 
-            // Append User Message
-            const userMsg = document.createElement('div');
-            userMsg.className = 'message user';
-            userMsg.innerText = input.value;
-            window.appendChild(userMsg);
+      <!-- System Status -->
+      <div class="setting-section">
+        <div class="section-label">System Status</div>
+        <div class="status-list">
+          <div class="status-item">
+            <span class="status-name">CORE PROCESSOR</span>
+            <span class="status-val online">ONLINE</span>
+          </div>
+          <div class="status-item">
+            <span class="status-name">NOTION API</span>
+            <span id="notionStatus" class="status-val standby">STANDBY</span>
+          </div>
+          <div class="status-item">
+            <span class="status-name">EMAIL MODULE</span>
+            <span class="status-val standby">STANDBY</span>
+          </div>
+          <div class="status-item">
+            <span class="status-name">NEURAL LINK</span>
+            <span class="status-val online">ONLINE</span>
+          </div>
+        </div>
+      </div>
 
-            const userText = input.value;
-            input.value = '';
-            window.scrollTop = window.scrollHeight;
+      <!-- Quick Commands -->
+      <div class="setting-section">
+        <div class="section-label">Quick Commands</div>
+        <div class="quick-actions">
+          <button class="qa-btn" onclick="sendQuick('Show my Notion tasks')">
+            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            NOTION WORKSPACE
+          </button>
+          <button class="qa-btn" onclick="sendQuick('Check my emails and summarize them')">
+            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            INBOX BRIEF
+          </button>
+          <button class="qa-btn" onclick="sendQuick('Run a social media automation report')">
+            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            SOCIAL SYNC
+          </button>
+          <button class="qa-btn" onclick="sendQuick('Run a full system diagnostic')">
+            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            DIAGNOSTICS
+          </button>
+        </div>
+      </div>
 
-            // Simulated Jarvis Processing Delayed Response
-            setTimeout(() => {
-                const jarvisMsg = document.createElement('div');
-                jarvisMsg.className = 'message jarvis';
-                
-                const tier = document.getElementById('tierSelect').value;
-                if (tier === 'byok' && !document.getElementById('userApiKey').value) {
-                    jarvisMsg.innerText = "Error: Core connection failed. Please supply your personal Gemini API key in the configuration sidebar to allow task execution.";
-                } else {
-                    jarvisMsg.innerText = `Command acknowledged: "${userText}". Processing simulation sequence...`;
-                }
-                
-                window.appendChild(jarvisMsg);
-                window.scrollTop = window.scrollHeight;
-            }, 1000);
-        }
-    </script>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <div class="header">
+      <div class="header-left">
+        <div class="header-title">CORE ORCHESTRATOR</div>
+        <div class="header-sub" id="headerSub">INITIALIZING NEURAL INTERFACE...</div>
+      </div>
+      <div class="header-metrics">
+        <div class="metric">
+          <div class="metric-val" id="uptimeClock">00:00:00</div>
+          <div class="metric-label">Uptime</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val" id="msgCount">01</div>
+          <div class="metric-label">Exchanges</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="msg jarvis">
+        <div class="msg-avatar">JRV</div>
+        <div class="msg-body">
+          <div class="msg-meta">JARVIS // 00:00:00 // BOOT SEQUENCE COMPLETE</div>
+          <div class="msg-bubble">
+            Good day. All systems nominal.<br><br>
+            I am ready to interface with your Notion workspace, handle email automation, and execute social workflows. Select your access tier in the left panel to activate my core processors.<br><br>
+            How may I assist you today?
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="typing-indicator" id="typingIndicator">
+      <div class="msg-avatar" style="width:32px;height:32px;border-radius:50%;background:rgba(0,200,255,0.1);border:1px solid rgba(0,200,255,0.3);color:var(--arc);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px;">JRV</div>
+      <div class="typing-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+
+    <div class="input-zone">
+      <div class="input-row">
+        <div class="waveform" id="waveform">
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+        </div>
+        <textarea id="userInput" rows="1" placeholder="Issue a command to JARVIS..."></textarea>
+        <button class="send-btn" onclick="sendMessage()" id="sendBtn">EXECUTE</button>
+      </div>
+      <div class="input-hint">
+        <span><span class="hint-key">ENTER</span> to send</span>
+        <span><span class="hint-key">SHIFT+ENTER</span> new line</span>
+        <span><span class="hint-key">↑</span> recall last</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── State ──
+let msgCount = 1;
+let startTime = Date.now();
+let lastCommand = '';
+const RESPONSES = {
+  notion: [
+    "Accessing Notion workspace... I found 7 open tasks across 3 projects. Priority items: complete Q3 report (due tomorrow), review contractor proposals (overdue by 2 days). Shall I draft a status update?",
+    "Notion sync complete. Your database shows 23 active pages. I've identified 4 items with no assigned due date. Want me to organize them by priority?"
+  ],
+  email: [
+    "Scanning inbox... 14 unread messages. 2 flagged high priority: one from your legal team re: contract review, one from a client re: project timeline. I can draft responses for both — shall I proceed?",
+    "Email module activated. I've categorized 47 messages from the past 48 hours. 6 require action. Summarizing top 3: (1) Invoice approval pending, (2) Meeting rescheduled to Friday, (3) New partnership inquiry."
+  ],
+  social: [
+    "Social automation scan complete. LinkedIn: 3 pending connection requests, engagement up 12%. Twitter/X: optimal post window is 9AM–11AM in your timezone. Shall I queue tomorrow's content?",
+  ],
+  diagnostic: [
+    "Running full diagnostic...\n\n[✓] Core processor: nominal\n[✓] Memory allocation: 84% available\n[✓] API connections: 2/4 active\n[!] Notion token: requires re-authentication\n[✓] Response latency: 142ms avg\n\nDiagnostic complete. One advisory detected.",
+  ],
+  default: [
+    "Command acknowledged. Processing your request through primary neural pathways...",
+    "Understood. Routing through available modules now. Stand by.",
+    "Affirmative. Executing task sequence. This will take a moment.",
+    "Request received and logged. Interfacing with relevant systems now.",
+  ]
+};
+
+// ── Uptime clock ──
+setInterval(() => {
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const h = String(Math.floor(elapsed / 3600)).padStart(2,'0');
+  const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2,'0');
+  const s = String(elapsed % 60).padStart(2,'0');
+  document.getElementById('uptimeClock').textContent = `${h}:${m}:${s}`;
+}, 1000);
+
+// ── Header status rotation ──
+const statusMessages = [
+  'NEURAL INTERFACE ACTIVE', 'AWAITING DIRECTIVES', 'ALL SYSTEMS NOMINAL',
+  'MONITORING WORKSPACE', 'READY FOR TASK EXECUTION'
+];
+let statusIdx = 0;
+setTimeout(() => {
+  document.getElementById('headerSub').textContent = statusMessages[0];
+  setInterval(() => {
+    statusIdx = (statusIdx + 1) % statusMessages.length;
+    document.getElementById('headerSub').textContent = statusMessages[statusIdx];
+  }, 5000);
+}, 800);
+
+// ── Toast ──
+function showToast(msg, duration=2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── Auto-resize textarea ──
+const textarea = document.getElementById('userInput');
+textarea.addEventListener('input', () => {
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+});
+textarea.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  if (e.key === 'ArrowUp' && !textarea.value && lastCommand) {
+    textarea.value = lastCommand;
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+  }
+});
+
+// ── Tier toggle ──
+function toggleTierInput() {
+  const tier = document.getElementById('tierSelect').value;
+  document.getElementById('apiKeyGroup').style.display = tier === 'sub' ? 'none' : '';
+  showToast(tier === 'sub' ? '⚡ PREMIUM TIER ACTIVATED' : '🔑 BYOK MODE — API KEY REQUIRED');
+}
+
+// ── Quick commands ──
+function sendQuick(text) {
+  document.getElementById('userInput').value = text;
+  sendMessage();
+}
+
+// ── Get timestamp ──
+function getTime() {
+  const e = Math.floor((Date.now() - startTime) / 1000);
+  return `${String(Math.floor(e/3600)).padStart(2,'0')}:${String(Math.floor((e%3600)/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
+}
+
+// ── Get contextual response ──
+function getResponse(text) {
+  const t = text.toLowerCase();
+  if (t.includes('notion') || t.includes('task')) return pick(RESPONSES.notion);
+  if (t.includes('email') || t.includes('inbox')) return pick(RESPONSES.email);
+  if (t.includes('social') || t.includes('twitter') || t.includes('linkedin')) return pick(RESPONSES.social);
+  if (t.includes('diagnostic') || t.includes('system')) return pick(RESPONSES.diagnostic);
+  return pick(RESPONSES.default) + `\n\nProcessing: "${text}"`;
+}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// ── Append message ──
+function appendMsg(role, text, time) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `
+    <div class="msg-avatar">${role === 'jarvis' ? 'JRV' : 'YOU'}</div>
+    <div class="msg-body">
+      <div class="msg-meta">${role === 'jarvis' ? 'JARVIS' : 'OPERATOR'} // ${time}</div>
+      <div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div>
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── Send ──
+function sendMessage() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const tier = document.getElementById('tierSelect').value;
+  if (tier === 'byok' && !document.getElementById('userApiKey').value) {
+    showToast('⚠ API KEY REQUIRED — Check sidebar configuration');
+    input.focus();
+    return;
+  }
+
+  lastCommand = text;
+  const t = getTime();
+  appendMsg('user', text, t);
+  input.value = '';
+  input.style.height = 'auto';
+
+  msgCount++;
+  document.getElementById('msgCount').textContent = String(msgCount).padStart(2,'0');
+
+  // Show typing + waveform
+  const typing = document.getElementById('typingIndicator');
+  const waveform = document.getElementById('waveform');
+  typing.classList.add('visible');
+  waveform.classList.add('active');
+  document.getElementById('messages').scrollTop = 99999;
+
+  const delay = 900 + Math.random() * 800;
+  setTimeout(() => {
+    typing.classList.remove('visible');
+    waveform.classList.remove('active');
+    const response = getResponse(text);
+    appendMsg('jarvis', response, getTime());
+    msgCount++;
+    document.getElementById('msgCount').textContent = String(msgCount).padStart(2,'0');
+  }, delay);
+}
+</script>
 </body>
 </html>
