@@ -3,1143 +3,1180 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JARVIS — AI Workspace Orchestrator</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@200;300;400&display=swap" rel="stylesheet">
+<title>J.A.R.V.I.S — Tactical AI Interface</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
+/* ══════════════════════════════════════════════════════
+   ROOT TOKENS
+══════════════════════════════════════════════════════ */
 :root {
-  --bg: #050810;
-  --panel: #080d1c;
-  --arc: #00c8ff;
-  --arc2: #0066ff;
-  --arc3: #ff6a00;
-  --glow: rgba(0,200,255,0.15);
-  --red: #ff3b3b;
-  --green: #00ff9d;
-  --text: #c8deff;
-  --muted: #3a4d6e;
-  --border: rgba(0,200,255,0.12);
+  --bg:       #030a16;
+  --bg2:      #050f20;
+  --cyan:     #00e5ff;
+  --cyan2:    #00b4d8;
+  --cyan-dim: rgba(0,229,255,0.08);
+  --orange:   #ff9800;
+  --red:      #ff3b3b;
+  --green:    #00ff9d;
+  --text:     #b8deff;
+  --muted:    #2a4a6e;
+  --glow-sm:  0 0 6px rgba(0,229,255,0.7);
+  --glow-md:  0 0 14px rgba(0,229,255,0.5), 0 0 30px rgba(0,229,255,0.2);
+  --glow-lg:  0 0 20px rgba(0,229,255,0.6), 0 0 60px rgba(0,229,255,0.2), 0 0 120px rgba(0,180,216,0.1);
+  --panel-bg: rgba(3,15,35,0.82);
+  --border:   rgba(0,229,255,0.22);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
-  font-family: 'Exo 2', sans-serif;
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
   background: var(--bg);
-  color: var(--text);
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  position: relative;
-}
-
-.bg-grid {
-  position: fixed; inset: 0; z-index: 0;
-  background-image:
-    linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  animation: gridPulse 8s ease-in-out infinite;
-}
-@keyframes gridPulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
-
-.bg-radial {
-  position: fixed; inset: 0; z-index: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,100,255,0.07) 0%, transparent 70%);
-  animation: radialShift 12s ease-in-out infinite;
-}
-@keyframes radialShift { 0%,100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.15); opacity: 1; } }
-
-.scanline {
-  position: fixed; inset: 0; z-index: 1; pointer-events: none;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
-}
-
-.app {
-  position: relative; z-index: 2;
-  display: flex;
-  width: 100%; height: 100vh;
-}
-
-/* ─── SIDEBAR ─── */
-.sidebar {
-  width: 280px; min-width: 280px;
-  background: linear-gradient(180deg, rgba(8,13,28,0.98) 0%, rgba(5,8,16,0.98) 100%);
-  border-right: 1px solid var(--border);
-  display: flex; flex-direction: column;
-  position: relative; overflow: hidden;
-}
-.sidebar::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--arc), transparent);
-  animation: topLine 3s ease-in-out infinite;
-}
-@keyframes topLine { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
-
-.logo-area { padding: 28px 24px 20px; border-bottom: 1px solid var(--border); }
-.logo {
-  font-family: 'Rajdhani', sans-serif; font-size: 28px; font-weight: 700;
-  letter-spacing: 6px; color: var(--arc);
-  text-shadow: 0 0 20px rgba(0,200,255,0.6), 0 0 40px rgba(0,200,255,0.2); line-height: 1;
-}
-.logo-sub { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--muted); margin-top: 4px; }
-
-.reactor { width: 64px; height: 64px; margin: 20px auto; position: relative; }
-.reactor-ring { position: absolute; border-radius: 50%; border: 1.5px solid; animation: spin linear infinite; }
-.reactor-ring:nth-child(1) { inset: 0; border-color: rgba(0,200,255,0.6); animation-duration: 8s; }
-.reactor-ring:nth-child(2) { inset: 6px; border-color: rgba(0,100,255,0.5); border-style: dashed; animation-duration: 5s; animation-direction: reverse; }
-.reactor-ring:nth-child(3) { inset: 14px; border-color: rgba(0,200,255,0.3); animation-duration: 3s; }
-.reactor-core {
-  position: absolute; inset: 22px; border-radius: 50%;
-  background: radial-gradient(circle, #00c8ff 0%, #0044aa 60%, transparent 100%);
-  box-shadow: 0 0 12px #00c8ff, 0 0 30px rgba(0,200,255,0.4);
-  animation: corePulse 2s ease-in-out infinite;
-}
-.reactor-core.speaking {
-  animation: corePulseSpeaking 0.4s ease-in-out infinite !important;
-}
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes corePulse { 0%,100% { box-shadow: 0 0 12px #00c8ff, 0 0 30px rgba(0,200,255,0.4); } 50% { box-shadow: 0 0 20px #00c8ff, 0 0 50px rgba(0,200,255,0.6); } }
-@keyframes corePulseSpeaking { 0%,100% { box-shadow: 0 0 25px #00c8ff, 0 0 60px rgba(0,200,255,0.8), 0 0 90px rgba(0,200,255,0.3); transform: scale(1); } 50% { box-shadow: 0 0 35px #00ffee, 0 0 80px rgba(0,255,220,0.9), 0 0 120px rgba(0,200,255,0.5); transform: scale(1.15); } }
-
-.sidebar-body { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
-
-.setting-section {
-  background: rgba(0,200,255,0.03); border: 1px solid var(--border); border-radius: 6px; padding: 14px;
-}
-.section-label {
-  font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 2px;
-  color: var(--arc); text-transform: uppercase; margin-bottom: 10px;
-  display: flex; align-items: center; gap: 8px;
-}
-.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-.field-label { font-size: 11px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; margin-top: 10px; }
-.field-label:first-of-type { margin-top: 0; }
-
-select, input[type="password"] {
-  width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(0,200,255,0.15);
-  padding: 9px 12px; border-radius: 4px; color: var(--text);
-  font-family: 'Share Tech Mono', monospace; font-size: 12px;
-  transition: border-color 0.2s, box-shadow 0.2s; appearance: none;
-}
-select:focus, input[type="password"]:focus { outline: none; border-color: var(--arc); box-shadow: 0 0 10px rgba(0,200,255,0.15); }
-
-.status-list { display: flex; flex-direction: column; gap: 8px; }
-.status-item { display: flex; align-items: center; justify-content: space-between; font-family: 'Share Tech Mono', monospace; font-size: 11px; }
-.status-name { color: var(--muted); }
-.status-val { padding: 2px 8px; border-radius: 3px; font-size: 10px; letter-spacing: 1px; }
-.status-val.online { background: rgba(0,255,157,0.1); color: var(--green); border: 1px solid rgba(0,255,157,0.2); }
-.status-val.standby { background: rgba(255,106,0,0.1); color: var(--arc3); border: 1px solid rgba(255,106,0,0.2); }
-.status-val.offline { background: rgba(255,59,59,0.1); color: var(--red); border: 1px solid rgba(255,59,59,0.2); }
-.status-val.active { background: rgba(0,200,255,0.1); color: var(--arc); border: 1px solid rgba(0,200,255,0.3); animation: blinkStatus 1.5s ease-in-out infinite; }
-@keyframes blinkStatus { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-.quick-actions { display: flex; flex-direction: column; gap: 6px; }
-.qa-btn {
-  background: rgba(0,200,255,0.04); border: 1px solid rgba(0,200,255,0.1);
-  color: var(--text); padding: 9px 12px; border-radius: 4px; cursor: pointer;
-  font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 1px;
-  text-align: left; transition: all 0.15s; display: flex; align-items: center; gap: 10px;
-}
-.qa-btn:hover { background: rgba(0,200,255,0.1); border-color: rgba(0,200,255,0.4); color: var(--arc); transform: translateX(3px); }
-.qa-icon { width: 18px; height: 18px; opacity: 0.6; flex-shrink: 0; }
-
-/* ─── VOICE MODULE PANEL ─── */
-.voice-section {
-  background: rgba(0,200,255,0.03);
-  border: 1px solid rgba(0,200,255,0.2);
-  border-radius: 6px;
-  padding: 14px;
-  position: relative;
-  overflow: hidden;
-}
-.voice-section::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--arc), transparent);
-  opacity: 0.5;
-}
-
-.voice-visualizer {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 3px;
-  height: 36px;
-  margin: 10px 0;
-}
-.v-bar {
-  width: 4px;
-  background: linear-gradient(180deg, var(--arc) 0%, var(--arc2) 100%);
-  border-radius: 2px 2px 0 0;
-  height: 4px;
-  transition: height 0.08s ease;
-  opacity: 0.3;
-}
-.voice-visualizer.listening .v-bar { opacity: 1; }
-.voice-visualizer.speaking .v-bar { opacity: 1; background: linear-gradient(180deg, #00ffcc 0%, var(--arc) 100%); }
-
-.voice-controls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.mic-btn {
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.5);
-  border: 2px solid rgba(0,200,255,0.3);
-  color: var(--arc);
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-  flex-shrink: 0;
-  position: relative;
-}
-.mic-btn:hover { border-color: var(--arc); box-shadow: 0 0 15px rgba(0,200,255,0.3); }
-.mic-btn.listening {
-  border-color: var(--red);
-  background: rgba(255,59,59,0.1);
-  box-shadow: 0 0 20px rgba(255,59,59,0.4);
-  animation: micPulse 1s ease-in-out infinite;
-}
-.mic-btn.listening svg { color: var(--red); }
-@keyframes micPulse {
-  0%,100% { box-shadow: 0 0 20px rgba(255,59,59,0.4); }
-  50% { box-shadow: 0 0 35px rgba(255,59,59,0.7), 0 0 60px rgba(255,59,59,0.2); }
-}
-.mic-btn.speaking {
-  border-color: var(--green);
-  background: rgba(0,255,157,0.08);
-  box-shadow: 0 0 20px rgba(0,255,157,0.3);
-}
-.mic-btn.speaking svg { color: var(--green); }
-
-.voice-info {
-  flex: 1;
-  display: flex; flex-direction: column; gap: 4px;
-}
-.voice-status-text {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
   color: var(--text);
-  letter-spacing: 1px;
-}
-.voice-status-sub {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 9px;
-  color: var(--muted);
-  letter-spacing: 1px;
+  cursor: crosshair;
 }
 
-.stop-btn {
-  width: 32px; height: 32px;
-  border-radius: 4px;
-  background: rgba(255,59,59,0.1);
-  border: 1px solid rgba(255,59,59,0.3);
-  color: var(--red);
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-  flex-shrink: 0;
-  opacity: 0;
+/* ══════════════════════════════════════════════════════
+   BACKGROUND LAYERS
+══════════════════════════════════════════════════════ */
+
+/* 1 — Radial vignette */
+.bg-vignette {
+  position: fixed; inset: 0; z-index: 0;
+  background: radial-gradient(ellipse 80% 70% at 50% 50%,
+    rgba(0,80,160,0.06) 0%,
+    transparent 70%),
+    radial-gradient(ellipse 100% 100% at 50% 50%,
+    transparent 60%,
+    rgba(0,0,0,0.7) 100%);
   pointer-events: none;
 }
-.stop-btn.visible { opacity: 1; pointer-events: all; }
-.stop-btn:hover { background: rgba(255,59,59,0.2); box-shadow: 0 0 10px rgba(255,59,59,0.3); }
 
-/* Voice settings */
-.voice-settings { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-.voice-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.voice-row label { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 1px; white-space: nowrap; }
-
-.toggle {
-  position: relative; width: 36px; height: 18px; flex-shrink: 0;
-}
-.toggle input { opacity: 0; width: 0; height: 0; }
-.toggle-slider {
-  position: absolute; cursor: pointer; inset: 0;
-  background: rgba(0,0,0,0.5); border: 1px solid rgba(0,200,255,0.2);
-  border-radius: 18px; transition: 0.2s;
-}
-.toggle-slider::before {
-  content: ''; position: absolute; height: 12px; width: 12px;
-  left: 2px; top: 2px; border-radius: 50%;
-  background: var(--muted); transition: 0.2s;
-}
-.toggle input:checked + .toggle-slider { background: rgba(0,200,255,0.15); border-color: var(--arc); }
-.toggle input:checked + .toggle-slider::before { transform: translateX(18px); background: var(--arc); box-shadow: 0 0 6px var(--arc); }
-
-.range-input {
-  -webkit-appearance: none; appearance: none;
-  height: 3px; background: rgba(0,200,255,0.15);
-  border-radius: 2px; outline: none; flex: 1;
-  border: none; padding: 0;
-}
-.range-input::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 12px; height: 12px; border-radius: 50%;
-  background: var(--arc); cursor: pointer;
-  box-shadow: 0 0 6px rgba(0,200,255,0.5);
+/* 2 — Grid */
+.bg-grid {
+  position: fixed; inset: 0; z-index: 1;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
 }
 
-/* ─── MAIN ─── */
-.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+/* 3 — CRT scanlines */
+.bg-scan {
+  position: fixed; inset: 0; z-index: 2;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.10) 3px,
+    rgba(0,0,0,0.10) 4px
+  );
+  pointer-events: none;
+}
 
+/* 4 — CRT flicker */
+.bg-scan::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(transparent 50%, rgba(0,0,0,0.04) 50%);
+  background-size: 100% 4px;
+  animation: flicker 0.12s steps(1) infinite;
+  pointer-events: none;
+}
+@keyframes flicker {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.97; }
+  100% { opacity: 1; }
+}
+
+/* 5 — ARC REACTOR background rings */
+.arc-reactor {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  pointer-events: none;
+  width: 0; height: 0;
+}
+
+.arc-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid;
+  transform: translate(-50%, -50%);
+  animation: spinRing linear infinite;
+}
+
+.arc-ring:nth-child(1)  { width: 900px;  height: 900px;  border-color: rgba(0,229,255,0.12); animation-duration: 120s; }
+.arc-ring:nth-child(2)  { width: 820px;  height: 820px;  border-color: rgba(0,229,255,0.07); animation-duration: 90s;  animation-direction: reverse; border-style: dashed; border-width: 1px; }
+.arc-ring:nth-child(3)  { width: 730px;  height: 730px;  border-color: rgba(0,229,255,0.15); animation-duration: 70s; }
+.arc-ring:nth-child(4)  { width: 650px;  height: 650px;  border-color: rgba(0,180,216,0.10); animation-duration: 55s;  animation-direction: reverse; }
+.arc-ring:nth-child(5)  { width: 570px;  height: 570px;  border-color: rgba(0,229,255,0.18); animation-duration: 44s; border-width: 1.5px; }
+.arc-ring:nth-child(6)  { width: 490px;  height: 490px;  border-color: rgba(0,229,255,0.08); animation-duration: 35s;  animation-direction: reverse; border-style: dotted; }
+.arc-ring:nth-child(7)  { width: 410px;  height: 410px;  border-color: rgba(0,229,255,0.22); animation-duration: 28s; border-width: 1.5px; }
+.arc-ring:nth-child(8)  { width: 330px;  height: 330px;  border-color: rgba(0,229,255,0.12); animation-duration: 22s;  animation-direction: reverse; }
+.arc-ring:nth-child(9)  { width: 250px;  height: 250px;  border-color: rgba(0,229,255,0.30); animation-duration: 16s; border-width: 2px; }
+.arc-ring:nth-child(10) { width: 170px;  height: 170px;  border-color: rgba(0,229,255,0.20); animation-duration: 10s;  animation-direction: reverse; }
+.arc-ring:nth-child(11) { width: 90px;   height: 90px;   border-color: rgba(0,229,255,0.45); animation-duration: 6s;  border-width: 2px; }
+
+/* tick marks on a couple rings */
+.arc-ring:nth-child(5)::before,
+.arc-ring:nth-child(7)::before {
+  content: '';
+  position: absolute; top: -4px; left: 50%;
+  width: 2px; height: 8px;
+  background: var(--cyan);
+  box-shadow: var(--glow-sm);
+  transform: translateX(-50%);
+}
+
+@keyframes spinRing {
+  from { transform: translate(-50%,-50%) rotate(0deg); }
+  to   { transform: translate(-50%,-50%) rotate(360deg); }
+}
+
+/* central core glow */
+.arc-core {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  z-index: 3;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,229,255,0.6) 0%, rgba(0,150,200,0.15) 50%, transparent 100%);
+  box-shadow: 0 0 30px rgba(0,229,255,0.8), 0 0 80px rgba(0,229,255,0.3), 0 0 160px rgba(0,200,255,0.1);
+  animation: corePulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes corePulse {
+  0%,100% { box-shadow: 0 0 30px rgba(0,229,255,0.8), 0 0 80px rgba(0,229,255,0.3); opacity: 0.8; }
+  50%      { box-shadow: 0 0 50px rgba(0,229,255,1.0), 0 0 140px rgba(0,229,255,0.5), 0 0 240px rgba(0,200,255,0.2); opacity: 1; }
+}
+
+/* ══════════════════════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════════════════════ */
+.app {
+  position: relative; z-index: 10;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 56px 1fr;
+  width: 100vw; height: 100vh;
+  gap: 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════════════════ */
 .header {
-  padding: 16px 28px; border-bottom: 1px solid var(--border);
+  grid-column: 1 / -1;
   display: flex; align-items: center; justify-content: space-between;
-  background: rgba(5,8,16,0.8); backdrop-filter: blur(10px); flex-shrink: 0;
+  padding: 0 20px;
+  background: rgba(3,10,22,0.88);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 rgba(0,229,255,0.1), 0 4px 30px rgba(0,0,0,0.5);
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
 }
-.header-title { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 3px; color: var(--arc); }
-.header-sub { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-top: 2px; }
-.header-metrics { display: flex; gap: 24px; }
-.metric { text-align: right; }
-.metric-val { font-family: 'Share Tech Mono', monospace; font-size: 16px; color: var(--arc); line-height: 1; }
-.metric-label { font-size: 9px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+.header::before {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--cyan) 20%, rgba(0,229,255,0.6) 50%, var(--cyan) 80%, transparent 100%);
+  box-shadow: var(--glow-sm);
+}
 
+.header-left {
+  display: flex; align-items: center; gap: 16px;
+}
+.header-logo {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 18px; font-weight: 900;
+  letter-spacing: 8px;
+  color: var(--cyan);
+  text-shadow: var(--glow-lg);
+}
+.header-sep {
+  width: 1px; height: 28px;
+  background: linear-gradient(180deg, transparent, var(--border), transparent);
+}
+.header-sub {
+  font-size: 10px; letter-spacing: 3px; color: var(--muted);
+}
+
+.header-center {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
+  font-size: 11px; letter-spacing: 2px; color: var(--muted);
+}
+.pulse-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green), 0 0 20px rgba(0,255,157,0.4);
+  animation: pulseDot 2s ease-in-out infinite;
+}
+@keyframes pulseDot {
+  0%,100% { box-shadow: 0 0 8px var(--green), 0 0 20px rgba(0,255,157,0.4); opacity:1; }
+  50%      { box-shadow: 0 0 14px var(--green), 0 0 40px rgba(0,255,157,0.7); opacity:0.8; }
+}
+
+.header-right {
+  display: flex; align-items: center; gap: 20px;
+  font-size: 10px; letter-spacing: 1px; color: var(--muted);
+}
+.header-stat { text-align: right; }
+.header-stat-val {
+  font-size: 13px; color: var(--cyan); display: block;
+  text-shadow: var(--glow-sm);
+}
+.header-clock {
+  font-size: 14px; color: var(--cyan);
+  text-shadow: var(--glow-sm); letter-spacing: 2px;
+}
+
+/* ══════════════════════════════════════════════════════
+   PANEL MIXIN (shared panel style)
+══════════════════════════════════════════════════════ */
+.panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  position: relative;
+}
+
+/* cut-corner brackets */
+.panel::before,
+.panel::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  border-color: var(--cyan);
+  border-style: solid;
+  box-shadow: var(--glow-sm);
+}
+.panel::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+.panel::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+.panel-inner-tl, .panel-inner-br {
+  position: absolute;
+  width: 16px; height: 16px;
+  border-color: var(--cyan);
+  border-style: solid;
+  box-shadow: var(--glow-sm);
+}
+.panel-inner-tl { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+.panel-inner-br { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+
+/* panel header bar */
+.panel-header {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+  font-size: 10px; letter-spacing: 3px; color: var(--cyan);
+  text-shadow: var(--glow-sm);
+  position: relative;
+}
+.panel-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--cyan) 0%, transparent 100%);
+  opacity: 0.4;
+}
+.panel-header-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: var(--glow-sm);
+  animation: pulseDot 3s ease-in-out infinite;
+}
+
+/* ══════════════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════════════ */
+.sidebar {
+  border-right: 1px solid var(--border);
+  border-top: none; border-left: none; border-bottom: none;
+  display: flex; flex-direction: column;
+  background: rgba(3,8,20,0.90);
+  backdrop-filter: blur(20px);
+  overflow: hidden;
+  box-shadow: 4px 0 30px rgba(0,0,0,0.5);
+}
+.sidebar::before { display: none; }
+.sidebar::after  { display: none; }
+
+/* right-side accent line */
+.sidebar-edge {
+  position: absolute; top: 0; right: -1px; bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent 0%, var(--cyan) 30%, var(--cyan) 70%, transparent 100%);
+  box-shadow: var(--glow-sm);
+}
+
+.sidebar-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,229,255,0.08);
+  position: relative;
+}
+
+.section-title {
+  font-size: 9px; letter-spacing: 3px;
+  color: var(--cyan); text-shadow: var(--glow-sm);
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* status rows */
+.status-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+  font-size: 10px;
+}
+.status-label { color: var(--muted); letter-spacing: 1px; }
+.status-badge {
+  padding: 2px 8px; border-radius: 2px;
+  font-size: 9px; letter-spacing: 1px;
+  border: 1px solid;
+}
+.badge-online  { color: var(--green); border-color: rgba(0,255,157,0.3); background: rgba(0,255,157,0.06); }
+.badge-standby { color: var(--orange); border-color: rgba(255,152,0,0.3); background: rgba(255,152,0,0.06); }
+.badge-warn    { color: var(--red);    border-color: rgba(255,59,59,0.3);  background: rgba(255,59,59,0.06); }
+
+/* gauge bars */
+.gauge { margin-bottom: 10px; }
+.gauge-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; margin-bottom: 4px; display: flex; justify-content: space-between; }
+.gauge-track {
+  height: 3px; background: rgba(0,229,255,0.1); border-radius: 2px; position: relative; overflow: hidden;
+}
+.gauge-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--cyan2), var(--cyan));
+  box-shadow: 0 0 8px var(--cyan);
+  transition: width 1s ease;
+}
+
+/* form controls */
+.field-label {
+  font-size: 9px; letter-spacing: 2px; color: var(--muted); margin-bottom: 6px;
+}
+.fui-select, .fui-input {
+  width: 100%;
+  background: rgba(0,229,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  padding: 8px 10px;
+  border-radius: 2px;
+  outline: none;
+  appearance: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 12px;
+}
+.fui-select:focus, .fui-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px rgba(0,229,255,0.15), inset 0 0 8px rgba(0,229,255,0.04);
+}
+.fui-input::placeholder { color: var(--muted); }
+
+/* data stream */
+.data-stream {
+  font-size: 9px; line-height: 1.7; color: rgba(0,229,255,0.35);
+  letter-spacing: 1px;
+  height: 90px; overflow: hidden;
+  position: relative;
+}
+.data-stream::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 30px;
+  background: linear-gradient(transparent, rgba(3,8,20,0.95));
+}
+
+/* mini radar / compass */
+.mini-radar {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,229,255,0.25);
+  position: relative;
+  margin: 0 auto 12px;
+  background: radial-gradient(circle, rgba(0,229,255,0.04) 0%, transparent 70%);
+  overflow: hidden;
+}
+.mini-radar::before {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,229,255,0.4) 50%, transparent);
+  transform-origin: left center;
+  animation: radarSweep 4s linear infinite;
+}
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.radar-dot {
+  position: absolute; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--cyan); box-shadow: var(--glow-sm);
+}
+
+/* waveform sparkline */
+.sparkline { display: flex; align-items: flex-end; gap: 2px; height: 28px; margin-bottom: 12px; }
+.spark-bar {
+  flex: 1; border-radius: 1px 1px 0 0;
+  background: linear-gradient(180deg, var(--cyan) 0%, rgba(0,180,216,0.3) 100%);
+  animation: sparkAnim 1.6s ease-in-out infinite;
+}
+@keyframes sparkAnim {
+  0%,100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+/* ══════════════════════════════════════════════════════
+   MAIN CONSOLE
+══════════════════════════════════════════════════════ */
+.console {
+  display: flex; flex-direction: column;
+  background: transparent;
+  overflow: hidden;
+  position: relative;
+}
+
+/* top telemetry strip */
+.telemetry-strip {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: rgba(3,8,20,0.7);
+  flex-shrink: 0;
+}
+.telem-cell {
+  flex: 1; padding: 8px 14px;
+  border-right: 1px solid var(--border);
+  font-size: 9px;
+  position: relative;
+}
+.telem-cell:last-child { border-right: none; }
+.telem-cell-label {
+  color: var(--muted); letter-spacing: 2px; margin-bottom: 3px;
+}
+.telem-cell-val {
+  font-size: 14px; color: var(--cyan);
+  text-shadow: var(--glow-sm); letter-spacing: 1px;
+}
+.telem-cell-unit { font-size: 9px; color: var(--muted); margin-left: 3px; }
+.telem-bar {
+  position: absolute; bottom: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cyan), transparent);
+  box-shadow: var(--glow-sm);
+  animation: telemSweep 3s ease-in-out infinite;
+}
+@keyframes telemSweep {
+  0%   { width: 0%; opacity: 0; }
+  10%  { opacity: 1; }
+  80%  { width: 100%; opacity: 1; }
+  100% { width: 100%; opacity: 0; }
+}
+
+/* chat messages area */
 .messages {
-  flex: 1; overflow-y: auto; padding: 24px 28px;
-  display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth;
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 20px 24px;
+  display: flex; flex-direction: column;
+  gap: 14px;
+  scroll-behavior: smooth;
 }
 .messages::-webkit-scrollbar { width: 4px; }
-.messages::-webkit-scrollbar-thumb { background: rgba(0,200,255,0.2); border-radius: 2px; }
+.messages::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.18); border-radius: 2px; }
+.messages::-webkit-scrollbar-track { background: transparent; }
 
-.msg { display: flex; gap: 12px; animation: msgIn 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-@keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* message bubbles */
+.msg {
+  display: flex; gap: 12px;
+  animation: msgFadeIn 0.4s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes msgFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 .msg.user { flex-direction: row-reverse; }
 
-.msg-avatar {
-  width: 32px; height: 32px; border-radius: 50%;
+.msg-glyph {
+  width: 34px; height: 34px; flex-shrink: 0;
+  border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 700;
-  flex-shrink: 0; letter-spacing: 1px; margin-top: 2px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 1px;
+  margin-top: 2px;
 }
-.msg.jarvis .msg-avatar { background: rgba(0,200,255,0.1); border: 1px solid rgba(0,200,255,0.3); color: var(--arc); }
-.msg.user .msg-avatar { background: rgba(0,100,255,0.2); border: 1px solid rgba(0,100,255,0.4); color: #6699ff; }
+.msg.jarvis .msg-glyph {
+  border: 1px solid rgba(0,229,255,0.4);
+  background: radial-gradient(circle, rgba(0,229,255,0.12) 0%, transparent 100%);
+  color: var(--cyan); box-shadow: var(--glow-sm);
+}
+.msg.user .msg-glyph {
+  border: 1px solid rgba(255,152,0,0.35);
+  background: radial-gradient(circle, rgba(255,152,0,0.1) 0%, transparent 100%);
+  color: var(--orange);
+}
 
-.msg-body { max-width: 68%; }
-.msg-meta { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 4px; letter-spacing: 1px; }
-.msg.user .msg-meta { text-align: right; }
+.msg-body { max-width: 70%; display: flex; flex-direction: column; }
+.msg.user .msg-body { align-items: flex-end; }
+
+.msg-label {
+  font-size: 9px; letter-spacing: 2px; margin-bottom: 5px;
+  color: var(--muted);
+}
+.msg.jarvis .msg-label { color: rgba(0,229,255,0.5); }
+.msg.user  .msg-label { color: rgba(255,152,0,0.5); }
 
 .msg-bubble {
-  padding: 12px 16px; line-height: 1.6; font-size: 14px; position: relative;
+  padding: 11px 15px;
+  font-size: 12px; line-height: 1.65;
+  position: relative;
 }
 .msg.jarvis .msg-bubble {
-  background: rgba(0,200,255,0.04); border: 1px solid rgba(0,200,255,0.12);
-  border-left: 2px solid var(--arc); border-radius: 2px 8px 8px 8px; color: var(--text);
+  background: rgba(0,229,255,0.04);
+  border: 1px solid rgba(0,229,255,0.15);
+  border-left: 2px solid var(--cyan);
+  border-radius: 0 6px 6px 6px;
+  color: var(--text);
+  box-shadow: inset 0 0 20px rgba(0,229,255,0.03), 0 4px 20px rgba(0,0,0,0.3);
+}
+/* top-left micro-bracket */
+.msg.jarvis .msg-bubble::before {
+  content: ''; position: absolute;
+  top: -1px; left: 10px;
+  width: 20px; height: 2px;
+  background: var(--cyan);
+  box-shadow: var(--glow-sm);
 }
 .msg.user .msg-bubble {
-  background: rgba(0,80,200,0.2); border: 1px solid rgba(0,100,255,0.25);
-  border-right: 2px solid #4488ff; border-radius: 8px 2px 8px 8px; color: #ddeeff;
+  background: rgba(255,152,0,0.06);
+  border: 1px solid rgba(255,152,0,0.2);
+  border-right: 2px solid var(--orange);
+  border-radius: 6px 0 6px 6px;
+  color: #ffd180;
 }
 
-/* speak button on jarvis messages */
-.msg-speak-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  margin-top: 6px; margin-left: 2px;
-  background: transparent; border: 1px solid rgba(0,200,255,0.15);
-  color: var(--muted); padding: 3px 8px; border-radius: 3px;
-  font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 1px;
-  cursor: pointer; transition: all 0.15s;
+/* typewriter cursor */
+.cursor {
+  display: inline-block;
+  width: 8px; height: 13px;
+  background: var(--cyan);
+  margin-left: 2px;
+  vertical-align: middle;
+  animation: blink 0.7s steps(1) infinite;
+  box-shadow: var(--glow-sm);
 }
-.msg-speak-btn:hover { color: var(--arc); border-color: rgba(0,200,255,0.4); background: rgba(0,200,255,0.05); }
-.msg-speak-btn.active { color: var(--green); border-color: rgba(0,255,157,0.4); background: rgba(0,255,157,0.05); }
+@keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
 
-.typing-indicator { display: none; gap: 12px; animation: msgIn 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-.typing-indicator.visible { display: flex; }
-.typing-dots { display: flex; align-items: center; gap: 5px; padding: 12px 16px; background: rgba(0,200,255,0.04); border: 1px solid rgba(0,200,255,0.12); border-left: 2px solid var(--arc); border-radius: 2px 8px 8px 8px; }
-.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--arc); animation: bounce 1.2s ease-in-out infinite; }
-.dot:nth-child(2) { animation-delay: 0.15s; }
-.dot:nth-child(3) { animation-delay: 0.3s; }
-@keyframes bounce { 0%,60%,100% { transform: translateY(0); opacity: 0.3; } 30% { transform: translateY(-6px); opacity: 1; } }
+/* boot message */
+.boot-msg {
+  text-align: center; padding: 20px;
+  font-size: 10px; color: var(--muted); letter-spacing: 2px;
+  border: 1px solid rgba(0,229,255,0.06);
+  background: rgba(0,229,255,0.02);
+  border-radius: 2px;
+}
+.boot-msg span { color: var(--cyan); }
 
-/* ─── INPUT ─── */
-.input-zone { padding: 16px 28px 20px; border-top: 1px solid var(--border); background: rgba(5,8,16,0.9); flex-shrink: 0; }
+/* ══════════════════════════════════════════════════════
+   INPUT ZONE
+══════════════════════════════════════════════════════ */
+.input-zone {
+  padding: 14px 20px 16px;
+  border-top: 1px solid var(--border);
+  background: rgba(3,8,20,0.92);
+  backdrop-filter: blur(20px);
+  flex-shrink: 0;
+  position: relative;
+}
+.input-zone::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  box-shadow: var(--glow-sm);
+}
+
 .input-row {
   display: flex; gap: 10px; align-items: flex-end;
-  background: rgba(0,0,0,0.4); border: 1px solid rgba(0,200,255,0.15);
-  border-radius: 6px; padding: 4px 4px 4px 16px;
+  background: rgba(0,229,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 3px 3px 14px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.input-row:focus-within { border-color: rgba(0,200,255,0.5); box-shadow: 0 0 20px rgba(0,200,255,0.08); }
-.input-row.recording { border-color: rgba(255,59,59,0.5); box-shadow: 0 0 20px rgba(255,59,59,0.1); animation: recordPulse 1.5s ease-in-out infinite; }
-@keyframes recordPulse { 0%,100% { box-shadow: 0 0 20px rgba(255,59,59,0.1); } 50% { box-shadow: 0 0 30px rgba(255,59,59,0.25); } }
+.input-row:focus-within {
+  border-color: rgba(0,229,255,0.5);
+  box-shadow: 0 0 20px rgba(0,229,255,0.08), inset 0 0 10px rgba(0,229,255,0.03);
+}
 
-#userInput {
+/* corner accents on input */
+.input-row::before, .input-row::after {
+  content: ''; position: absolute;
+  width: 10px; height: 10px;
+  border-color: var(--cyan); border-style: solid;
+  box-shadow: var(--glow-sm);
+}
+
+#cmdInput {
   flex: 1; background: transparent; border: none; outline: none;
-  color: var(--text); font-family: 'Exo 2', sans-serif; font-size: 14px;
-  padding: 10px 0; resize: none;
+  color: var(--text); font-family: 'Share Tech Mono', monospace;
+  font-size: 13px; padding: 9px 0; resize: none; max-height: 100px;
+  caret-color: var(--cyan);
 }
-#userInput::placeholder { color: var(--muted); }
+#cmdInput::placeholder { color: var(--muted); }
 
-.input-mic-btn {
-  width: 38px; height: 38px; border-radius: 4px;
-  background: transparent; border: 1px solid rgba(0,200,255,0.15);
-  color: var(--muted); cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s; flex-shrink: 0; align-self: center;
-}
-.input-mic-btn:hover { color: var(--arc); border-color: rgba(0,200,255,0.4); background: rgba(0,200,255,0.05); }
-.input-mic-btn.active { color: var(--red); border-color: rgba(255,59,59,0.5); background: rgba(255,59,59,0.08); animation: micPulse 1s ease-in-out infinite; }
-
-.send-btn {
-  background: linear-gradient(135deg, #0066ff, #00c8ff); border: none; color: #fff;
-  padding: 10px 22px; border-radius: 4px;
-  font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 2px;
-  cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; align-self: center;
-}
-.send-btn:hover { box-shadow: 0 0 20px rgba(0,200,255,0.4); transform: translateY(-1px); }
-.send-btn:active { transform: translateY(0); }
-
-.input-hint {
-  font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted);
-  margin-top: 8px; letter-spacing: 1px; display: flex; gap: 20px;
-}
-.hint-key { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 1px 6px; border-radius: 3px; font-size: 9px; }
-
-/* ─── CORNERS ─── */
-.corner { position: fixed; width: 40px; height: 40px; pointer-events: none; z-index: 10; opacity: 0.4; }
-.corner-tl { top: 12px; left: 295px; border-top: 2px solid var(--arc); border-left: 2px solid var(--arc); }
-.corner-tr { top: 12px; right: 12px; border-top: 2px solid var(--arc); border-right: 2px solid var(--arc); }
-.corner-bl { bottom: 12px; left: 295px; border-bottom: 2px solid var(--arc); border-left: 2px solid var(--arc); }
-.corner-br { bottom: 12px; right: 12px; border-bottom: 2px solid var(--arc); border-right: 2px solid var(--arc); }
-
-.waveform { display: flex; align-items: center; gap: 3px; height: 24px; margin-right: 10px; opacity: 0; transition: opacity 0.3s; flex-shrink: 0; align-self: center; }
-.waveform.active { opacity: 1; }
-.wave-bar { width: 3px; background: var(--arc); border-radius: 2px; animation: wave 1s ease-in-out infinite; }
-.wave-bar:nth-child(1) { animation-duration: 0.8s; } .wave-bar:nth-child(2) { animation-duration: 0.6s; animation-delay: 0.1s; }
-.wave-bar:nth-child(3) { animation-duration: 1.0s; animation-delay: 0.2s; } .wave-bar:nth-child(4) { animation-duration: 0.7s; animation-delay: 0.05s; }
-.wave-bar:nth-child(5) { animation-duration: 0.9s; animation-delay: 0.15s; }
-@keyframes wave { 0%,100% { height: 4px; } 50% { height: 18px; } }
-
-/* ─── TOAST ─── */
-.toast {
-  position: fixed; top: 20px; right: 20px;
-  background: rgba(8,13,28,0.95); border: 1px solid rgba(0,200,255,0.3); border-left: 3px solid var(--arc);
-  padding: 12px 18px; border-radius: 4px;
-  font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--text);
-  z-index: 100; transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1); max-width: 300px;
-}
-.toast.show { transform: translateX(0); }
-
-/* ─── VOICE OVERLAY (when listening) ─── */
-.voice-overlay {
-  position: fixed; inset: 0; z-index: 50;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background: rgba(5,8,16,0.92);
-  backdrop-filter: blur(8px);
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.3s;
-}
-.voice-overlay.active { opacity: 1; pointer-events: all; }
-
-.voice-orb {
-  width: 160px; height: 160px;
-  border-radius: 50%;
+.execute-btn {
+  background: transparent;
+  border: 1px solid rgba(0,229,255,0.35);
+  color: var(--cyan);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px; letter-spacing: 3px;
+  padding: 9px 20px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-shadow: var(--glow-sm);
   position: relative;
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 32px;
+  overflow: hidden;
+  align-self: center;
 }
-.orb-ring {
-  position: absolute; border-radius: 50%; border: 1px solid rgba(0,200,255,0.3);
-  animation: orbExpand 2s ease-out infinite;
+.execute-btn::before {
+  content: '';
+  position: absolute; top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,229,255,0.12), transparent);
+  transition: left 0.4s;
 }
-.orb-ring:nth-child(1) { inset: 0; animation-delay: 0s; }
-.orb-ring:nth-child(2) { inset: -20px; animation-delay: 0.5s; border-color: rgba(0,200,255,0.15); }
-.orb-ring:nth-child(3) { inset: -40px; animation-delay: 1s; border-color: rgba(0,200,255,0.07); }
-@keyframes orbExpand { 0% { transform: scale(0.9); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
+.execute-btn:hover {
+  border-color: var(--cyan);
+  background: rgba(0,229,255,0.08);
+  box-shadow: var(--glow-md);
+}
+.execute-btn:hover::before { left: 100%; }
+.execute-btn:active { transform: scale(0.97); }
 
-.orb-core {
-  width: 120px; height: 120px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(0,200,255,0.2) 0%, rgba(0,100,200,0.1) 50%, transparent 100%);
-  border: 2px solid rgba(0,200,255,0.5);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 40px rgba(0,200,255,0.3);
+.input-hints {
+  display: flex; gap: 16px; margin-top: 8px;
+  font-size: 9px; color: var(--muted); letter-spacing: 1px;
 }
-.orb-core.speaking-orb {
-  background: radial-gradient(circle, rgba(0,255,180,0.2) 0%, rgba(0,200,255,0.1) 50%, transparent 100%);
-  border-color: rgba(0,255,180,0.5);
-  box-shadow: 0 0 60px rgba(0,255,180,0.4);
-}
-
-.orb-bars {
-  display: flex; align-items: center; gap: 4px; height: 40px;
-}
-.orb-bar {
-  width: 5px; border-radius: 3px;
-  background: linear-gradient(180deg, var(--arc) 0%, var(--arc2) 100%);
-  height: 4px; transition: height 0.05s ease;
+.hint-key {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  padding: 1px 5px; border-radius: 2px; font-size: 8px;
 }
 
-.voice-overlay-text {
-  font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 600;
-  letter-spacing: 4px; color: var(--arc); margin-bottom: 8px;
+/* ══════════════════════════════════════════════════════
+   TYPING INDICATOR
+══════════════════════════════════════════════════════ */
+.typing-row {
+  display: none; gap: 12px; align-items: center;
+  animation: msgFadeIn 0.3s ease;
 }
-.voice-overlay-sub {
-  font-family: 'Share Tech Mono', monospace; font-size: 12px;
-  color: var(--muted); letter-spacing: 2px; margin-bottom: 24px;
-}
-.voice-transcript-preview {
-  font-family: 'Exo 2', sans-serif; font-size: 16px; color: var(--text);
-  max-width: 500px; text-align: center; min-height: 24px;
-  opacity: 0.8; font-style: italic;
-}
+.typing-row.visible { display: flex; }
+.typing-dots { display: flex; gap: 5px; padding: 12px 16px; border: 1px solid rgba(0,229,255,0.12); border-left: 2px solid var(--cyan); border-radius: 0 6px 6px 6px; background: rgba(0,229,255,0.03); }
+.tdot { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); animation: tdotBounce 1.2s ease-in-out infinite; }
+.tdot:nth-child(2) { animation-delay: 0.15s; }
+.tdot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes tdotBounce { 0%,60%,100% { transform: translateY(0); opacity:0.3; } 30% { transform: translateY(-7px); opacity:1; } }
 
-.cancel-voice-btn {
-  margin-top: 32px;
-  background: rgba(255,59,59,0.1); border: 1px solid rgba(255,59,59,0.3);
-  color: var(--red); padding: 10px 28px; border-radius: 4px;
-  font-family: 'Share Tech Mono', monospace; font-size: 12px; letter-spacing: 2px;
-  cursor: pointer; transition: all 0.2s;
-}
-.cancel-voice-btn:hover { background: rgba(255,59,59,0.2); }
+/* ══════════════════════════════════════════════════════
+   SCROLLBAR HIDING
+══════════════════════════════════════════════════════ */
+.sidebar-body { flex:1; overflow-y:auto; }
+.sidebar-body::-webkit-scrollbar { width:3px; }
+.sidebar-body::-webkit-scrollbar-thumb { background:rgba(0,229,255,0.15); }
+
 </style>
 </head>
 <body>
 
+<!-- ─── BACKGROUND ─── -->
+<div class="bg-vignette"></div>
 <div class="bg-grid"></div>
-<div class="bg-radial"></div>
-<div class="scanline"></div>
-<div class="corner corner-tl"></div>
-<div class="corner corner-tr"></div>
-<div class="corner corner-bl"></div>
-<div class="corner corner-br"></div>
-<div class="toast" id="toast"></div>
+<div class="bg-scan"></div>
 
-<!-- ─── VOICE LISTENING OVERLAY ─── -->
-<div class="voice-overlay" id="voiceOverlay">
-  <div class="voice-orb">
-    <div class="orb-ring"></div>
-    <div class="orb-ring"></div>
-    <div class="orb-ring"></div>
-    <div class="orb-core" id="orbCore">
-      <div class="orb-bars" id="orbBars">
-        <div class="orb-bar"></div><div class="orb-bar"></div><div class="orb-bar"></div>
-        <div class="orb-bar"></div><div class="orb-bar"></div><div class="orb-bar"></div>
-        <div class="orb-bar"></div>
-      </div>
-    </div>
-  </div>
-  <div class="voice-overlay-text" id="overlayTitle">LISTENING</div>
-  <div class="voice-overlay-sub" id="overlaySub">SPEAK YOUR COMMAND...</div>
-  <div class="voice-transcript-preview" id="transcriptPreview"></div>
-  <button class="cancel-voice-btn" onclick="cancelVoice()">CANCEL</button>
+<!-- ─── ARC REACTOR ─── -->
+<div class="arc-reactor">
+  <div class="arc-ring"></div>
+  <div class="arc-ring"></div>
+  <div class="arc-ring"></div>
+  <div class="arc-ring"></div>
+  <div class="arc-ring"></div>
+  <div class="arc-ring"></div>
+  <div class="arc-ring"></div>
+  <div class="arc-ring"></div>
+  <div class="arc-ring"></div>
+  <div class="arc-ring"></div>
+  <div class="arc-ring"></div>
 </div>
+<div class="arc-core"></div>
 
+<!-- ─── APP ─── -->
 <div class="app">
 
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="logo-area">
-      <div class="logo">JARVIS</div>
-      <div class="logo-sub">Just A Rather Very Intelligent System</div>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="header-logo">J.A.R.V.I.S</div>
+      <div class="header-sep"></div>
+      <div class="header-sub">TACTICAL ARTIFICIAL INTELLIGENCE v4.1.7</div>
     </div>
-    <div class="reactor">
-      <div class="reactor-ring"></div>
-      <div class="reactor-ring"></div>
-      <div class="reactor-ring"></div>
-      <div class="reactor-core" id="reactorCore"></div>
+    <div class="header-center">
+      <div class="pulse-dot"></div>
+      <span>SYSTEM ONLINE</span>
+      <span style="color:rgba(0,229,255,0.2)">|</span>
+      <span id="headerStatus">ALL MODULES NOMINAL</span>
+    </div>
+    <div class="header-right">
+      <div class="header-stat"><span class="header-stat-val" id="cpuVal">--</span><span style="font-size:8px;letter-spacing:1px">CPU</span></div>
+      <div class="header-stat"><span class="header-stat-val" id="memVal">--</span><span style="font-size:8px;letter-spacing:1px">MEM</span></div>
+      <div class="header-clock" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar panel" style="border:none;">
+    <div class="sidebar-edge"></div>
+    <div class="panel-header">
+      <div class="panel-header-dot"></div>
+      SYSTEM CONFIGURATION
     </div>
 
     <div class="sidebar-body">
 
-      <!-- Config -->
-      <div class="setting-section">
-        <div class="section-label">Configuration</div>
-        <div class="field-label">Access Tier</div>
-        <select id="tierSelect" onchange="toggleTierInput()">
-          <option value="byok">Bring Your Own Key</option>
-          <option value="sub">Jarvis Premium</option>
+      <!-- Status readout -->
+      <div class="sidebar-section">
+        <div class="section-title">SYSTEM STATUS</div>
+        <div class="status-row"><span class="status-label">NEURAL CORE</span><span class="status-badge badge-online">ONLINE</span></div>
+        <div class="status-row"><span class="status-label">INFERENCE ENGINE</span><span class="status-badge badge-online">ACTIVE</span></div>
+        <div class="status-row"><span class="status-label">NOTION BRIDGE</span><span class="status-badge badge-standby">STANDBY</span></div>
+        <div class="status-row"><span class="status-label">COMM RELAY</span><span class="status-badge badge-standby">STANDBY</span></div>
+        <div class="status-row"><span class="status-label">AUTH LAYER</span><span class="status-badge badge-warn" id="authBadge">REQUIRED</span></div>
+      </div>
+
+      <!-- Gauges -->
+      <div class="sidebar-section">
+        <div class="section-title">RESOURCE TELEMETRY</div>
+        <div class="gauge">
+          <div class="gauge-label"><span>CPU LOAD</span><span id="gCpu" style="color:var(--cyan)">--</span></div>
+          <div class="gauge-track"><div class="gauge-fill" id="gCpuBar" style="width:0%"></div></div>
+        </div>
+        <div class="gauge">
+          <div class="gauge-label"><span>MEMORY</span><span id="gMem" style="color:var(--cyan)">--</span></div>
+          <div class="gauge-track"><div class="gauge-fill" id="gMemBar" style="width:0%"></div></div>
+        </div>
+        <div class="gauge">
+          <div class="gauge-label"><span>NEURAL BANDWIDTH</span><span id="gNet" style="color:var(--cyan)">--</span></div>
+          <div class="gauge-track"><div class="gauge-fill" id="gNetBar" style="width:0%" style="background:linear-gradient(90deg, var(--cyan2), var(--orange))"></div></div>
+        </div>
+        <div class="sparkline" id="sparkline"></div>
+      </div>
+
+      <!-- Auth Protocol -->
+      <div class="sidebar-section">
+        <div class="section-title">AUTH PROTOCOL</div>
+        <div class="field-label">ACCESS MODE</div>
+        <select class="fui-select" id="authMode" onchange="handleAuthChange()">
+          <option value="byok">[ BYOK ] Bring Your Own Key</option>
+          <option value="premium">[ PREM ] Premium Subscriber</option>
         </select>
-        <div id="apiKeyGroup">
-          <div class="field-label">Gemini API Key</div>
-          <input type="password" id="userApiKey" placeholder="AIzaSy...">
+        <div id="apiKeyField">
+          <div class="field-label">GEMINI API KEY</div>
+          <input type="password" class="fui-input" id="apiKey" placeholder="AIzaSy••••••••••••••••••••••••••">
         </div>
       </div>
 
-      <!-- VOICE MODULE -->
-      <div class="voice-section">
-        <div class="section-label">Voice Module</div>
-
-        <div class="voice-visualizer" id="voiceViz">
-          <div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div>
-          <div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div>
-          <div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div>
-          <div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div>
+      <!-- Radar -->
+      <div class="sidebar-section">
+        <div class="section-title">THREAT MATRIX</div>
+        <div class="mini-radar">
+          <div class="radar-dot" style="top:25%;left:60%"></div>
+          <div class="radar-dot" style="top:65%;left:30%;animation-delay:1s"></div>
+          <div class="radar-dot" style="top:45%;left:75%;animation-delay:2s"></div>
         </div>
-
-        <div class="voice-controls">
-          <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="Hold to speak">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-              <line x1="12" y1="19" x2="12" y2="23"/>
-              <line x1="8" y1="23" x2="16" y2="23"/>
-            </svg>
-          </button>
-          <div class="voice-info">
-            <div class="voice-status-text" id="voiceStatusText">MIC STANDBY</div>
-            <div class="voice-status-sub" id="voiceStatusSub">Click mic to activate</div>
-          </div>
-          <button class="stop-btn" id="stopSpeakBtn" onclick="stopSpeaking()" title="Stop speaking">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
-          </button>
-        </div>
-
-        <div class="voice-settings">
-          <div class="voice-row">
-            <label>AUTO-SPEAK</label>
-            <label class="toggle">
-              <input type="checkbox" id="autoSpeakToggle" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="voice-row">
-            <label>VOICE</label>
-            <select id="voiceSelect" style="padding:4px 8px;font-size:10px;flex:1;margin-left:8px;">
-              <option value="">Loading...</option>
-            </select>
-          </div>
-          <div class="voice-row">
-            <label>RATE</label>
-            <input type="range" class="range-input" id="voiceRate" min="0.5" max="2" step="0.1" value="0.95">
-          </div>
-          <div class="voice-row">
-            <label>PITCH</label>
-            <input type="range" class="range-input" id="voicePitch" min="0.5" max="2" step="0.1" value="0.85">
-          </div>
-        </div>
+        <div class="status-row"><span class="status-label">ANOMALIES DETECTED</span><span style="color:var(--green);font-size:11px;">0</span></div>
+        <div class="status-row"><span class="status-label">LAST SWEEP</span><span id="lastSweep" style="color:var(--muted);font-size:10px;">--:--:--</span></div>
       </div>
 
-      <!-- System Status -->
-      <div class="setting-section">
-        <div class="section-label">System Status</div>
-        <div class="status-list">
-          <div class="status-item"><span class="status-name">CORE PROCESSOR</span><span class="status-val online">ONLINE</span></div>
-          <div class="status-item"><span class="status-name">VOICE MODULE</span><span class="status-val" id="voiceModuleStatus">CHECKING</span></div>
-          <div class="status-item"><span class="status-name">NOTION API</span><span class="status-val standby">STANDBY</span></div>
-          <div class="status-item"><span class="status-name">EMAIL MODULE</span><span class="status-val standby">STANDBY</span></div>
-        </div>
-      </div>
-
-      <!-- Quick Commands -->
-      <div class="setting-section">
-        <div class="section-label">Quick Commands</div>
-        <div class="quick-actions">
-          <button class="qa-btn" onclick="sendQuick('Show my Notion tasks')">
-            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-            NOTION WORKSPACE
-          </button>
-          <button class="qa-btn" onclick="sendQuick('Check my emails and summarize them')">
-            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            INBOX BRIEF
-          </button>
-          <button class="qa-btn" onclick="sendQuick('Run a social media automation report')">
-            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-            SOCIAL SYNC
-          </button>
-          <button class="qa-btn" onclick="sendQuick('Run a full system diagnostic')">
-            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            DIAGNOSTICS
-          </button>
-        </div>
+      <!-- Data stream -->
+      <div class="sidebar-section">
+        <div class="section-title">DATA STREAM</div>
+        <div class="data-stream" id="dataStream"></div>
       </div>
 
     </div>
-  </div>
+  </aside>
 
-  <!-- MAIN -->
-  <div class="main">
-    <div class="header">
-      <div class="header-left">
-        <div class="header-title">CORE ORCHESTRATOR</div>
-        <div class="header-sub" id="headerSub">INITIALIZING NEURAL INTERFACE...</div>
+  <!-- MAIN CONSOLE -->
+  <main class="console">
+
+    <!-- Telemetry strip -->
+    <div class="telemetry-strip">
+      <div class="telem-cell">
+        <div class="telem-bar"></div>
+        <div class="telem-cell-label">LATENCY</div>
+        <div class="telem-cell-val"><span id="t1">142</span><span class="telem-cell-unit">ms</span></div>
       </div>
-      <div class="header-metrics">
-        <div class="metric"><div class="metric-val" id="uptimeClock">00:00:00</div><div class="metric-label">Uptime</div></div>
-        <div class="metric"><div class="metric-val" id="msgCount">01</div><div class="metric-label">Exchanges</div></div>
+      <div class="telem-cell">
+        <div class="telem-bar" style="animation-delay:0.5s"></div>
+        <div class="telem-cell-label">TOKENS/SEC</div>
+        <div class="telem-cell-val"><span id="t2">--</span><span class="telem-cell-unit">t/s</span></div>
+      </div>
+      <div class="telem-cell">
+        <div class="telem-bar" style="animation-delay:1s"></div>
+        <div class="telem-cell-label">SESSION</div>
+        <div class="telem-cell-val"><span id="t3">0</span><span class="telem-cell-unit">exch</span></div>
+      </div>
+      <div class="telem-cell">
+        <div class="telem-bar" style="animation-delay:1.5s"></div>
+        <div class="telem-cell-label">UPTIME</div>
+        <div class="telem-cell-val"><span id="t4">00:00:00</span></div>
+      </div>
+      <div class="telem-cell">
+        <div class="telem-bar" style="animation-delay:2s"></div>
+        <div class="telem-cell-label">MODEL</div>
+        <div class="telem-cell-val" style="font-size:10px;letter-spacing:1px">GEMINI-2.5</div>
       </div>
     </div>
 
+    <!-- Messages -->
     <div class="messages" id="messages">
+      <div class="boot-msg">
+        ── <span>SECURE CHANNEL ESTABLISHED</span> ── PROTOCOL v4.1.7 ──
+        <br>Awaiting operator authentication to activate inference core.
+      </div>
+
       <div class="msg jarvis">
-        <div class="msg-avatar">JRV</div>
+        <div class="msg-glyph">JRV</div>
         <div class="msg-body">
-          <div class="msg-meta">JARVIS // 00:00:00 // BOOT SEQUENCE COMPLETE</div>
+          <div class="msg-label">J.A.R.V.I.S // 00:00:01 // BOOT SEQUENCE COMPLETE</div>
           <div class="msg-bubble">
-            Good day. All systems nominal.<br><br>
-            Voice module is online. You may speak commands using the microphone — click the mic button in the sidebar or the input bar. I will respond both in text and voice.<br><br>
+            Good day. All primary systems are online and operating within nominal parameters.<br><br>
+            To activate full inference capabilities, please configure your Auth Protocol in the left panel. I am currently monitoring all subsystems and standing by for your directives.<br><br>
             How may I assist you today?
           </div>
-          <button class="msg-speak-btn" onclick="speakText(this, 'Good day. All systems nominal. Voice module is online. You may speak commands using the microphone. I will respond both in text and voice. How may I assist you today?')">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-            SPEAK
-          </button>
         </div>
       </div>
     </div>
 
-    <div class="typing-indicator" id="typingIndicator">
-      <div class="msg-avatar" style="width:32px;height:32px;border-radius:50%;background:rgba(0,200,255,0.1);border:1px solid rgba(0,200,255,0.3);color:var(--arc);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px;">JRV</div>
-      <div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <!-- Typing indicator -->
+    <div class="typing-row" id="typingRow" style="padding:0 24px 8px;">
+      <div class="msg-glyph" style="width:34px;height:34px;border-radius:50%;border:1px solid rgba(0,229,255,0.4);background:radial-gradient(circle,rgba(0,229,255,0.12) 0%,transparent 100%);color:var(--cyan);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;flex-shrink:0;">JRV</div>
+      <div class="typing-dots"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>
     </div>
 
+    <!-- Input -->
     <div class="input-zone">
       <div class="input-row" id="inputRow">
-        <div class="waveform" id="waveform">
-          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-          <div class="wave-bar"></div><div class="wave-bar"></div>
-        </div>
-        <textarea id="userInput" rows="1" placeholder="Issue a command to JARVIS..."></textarea>
-        <button class="input-mic-btn" id="inputMicBtn" onclick="toggleMic()" title="Voice input">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-            <line x1="12" y1="19" x2="12" y2="23"/>
-            <line x1="8" y1="23" x2="16" y2="23"/>
-          </svg>
-        </button>
-        <button class="send-btn" onclick="sendMessage()">EXECUTE</button>
+        <textarea id="cmdInput" rows="1" placeholder="  ›  ENTER COMMAND FOR J.A.R.V.I.S..."></textarea>
+        <button class="execute-btn" id="execBtn" onclick="executeCommand()">[ EXECUTE ]</button>
       </div>
-      <div class="input-hint">
-        <span><span class="hint-key">ENTER</span> send</span>
-        <span><span class="hint-key">SHIFT+ENTER</span> new line</span>
-        <span><span class="hint-key">↑</span> recall last</span>
-        <span><span class="hint-key">MIC</span> voice input</span>
+      <div class="input-hints">
+        <span><span class="hint-key">ENTER</span> TRANSMIT</span>
+        <span><span class="hint-key">SHIFT+ENTER</span> NEW LINE</span>
+        <span><span class="hint-key">↑</span> RECALL</span>
       </div>
     </div>
-  </div>
+
+  </main>
+
 </div>
 
 <script>
-// ══════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════
-let msgCount = 1, startTime = Date.now(), lastCommand = '';
-let recognition = null, isListening = false, isSpeaking = false;
-let currentUtterance = null;
-let audioCtx = null, analyser = null, micStream = null, animFrame = null;
+/* ══════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════ */
+let sessionStart = Date.now();
+let exchangeCount = 0;
+let lastCmd = '';
+let isProcessing = false;
 
-const RESPONSES = {
-  notion: [
-    "Accessing Notion workspace... I found 7 open tasks across 3 projects. Priority items: complete Q3 report, due tomorrow, and review contractor proposals, overdue by 2 days. Shall I draft a status update?",
-    "Notion sync complete. Your database shows 23 active pages. I've identified 4 items with no assigned due date. Want me to organize them by priority?"
-  ],
-  email: [
-    "Scanning inbox... 14 unread messages. 2 flagged high priority: one from your legal team regarding contract review, one from a client regarding project timeline. I can draft responses for both — shall I proceed?",
-    "Email module activated. I've categorized 47 messages from the past 48 hours. 6 require action. Top 3: Invoice approval pending, Meeting rescheduled to Friday, New partnership inquiry."
-  ],
-  social: [
-    "Social automation scan complete. LinkedIn: 3 pending connection requests, engagement up 12 percent. Twitter X: optimal post window is 9AM to 11AM in your timezone. Shall I queue tomorrow's content?",
-  ],
-  diagnostic: [
-    "Running full diagnostic. Core processor: nominal. Memory allocation: 84 percent available. API connections: 2 of 4 active. Notion token requires re-authentication. Response latency: 142 milliseconds average. Diagnostic complete. One advisory detected.",
-  ],
+/* ══════════════════════════════════════════════
+   CLOCK + UPTIME
+══════════════════════════════════════════════ */
+function pad(n){ return String(n).padStart(2,'0'); }
+function getTimeStr(){
+  const d = new Date();
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+function getUptime(){
+  const s = Math.floor((Date.now()-sessionStart)/1000);
+  return `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
+}
+
+setInterval(()=>{
+  document.getElementById('clock').textContent = getTimeStr();
+  document.getElementById('t4').textContent = getUptime();
+  document.getElementById('lastSweep').textContent = getTimeStr();
+}, 1000);
+
+/* ══════════════════════════════════════════════
+   LIVE GAUGES (simulated)
+══════════════════════════════════════════════ */
+let cpu=42, mem=68, net=35;
+function lerp(a,b,t){ return a+(b-a)*t; }
+
+setInterval(()=>{
+  cpu = Math.max(10, Math.min(95, cpu + (Math.random()-0.48)*8));
+  mem = Math.max(30, Math.min(90, mem + (Math.random()-0.5)*4));
+  net = Math.max(5,  Math.min(100, net + (Math.random()-0.5)*12));
+
+  const cpuS = cpu.toFixed(0)+'%';
+  const memS = mem.toFixed(0)+'%';
+  const netS = net.toFixed(0)+'%';
+
+  document.getElementById('cpuVal').textContent = cpuS;
+  document.getElementById('memVal').textContent = memS;
+  document.getElementById('gCpu').textContent = cpuS;
+  document.getElementById('gMem').textContent = memS;
+  document.getElementById('gNet').textContent = netS;
+  document.getElementById('gCpuBar').style.width = cpu+'%';
+  document.getElementById('gMemBar').style.width = mem+'%';
+  document.getElementById('gNetBar').style.width = net+'%';
+
+  const lat = Math.floor(80 + Math.random()*120);
+  document.getElementById('t1').textContent = lat;
+  const toks = Math.floor(40 + Math.random()*80);
+  document.getElementById('t2').textContent = toks;
+
+}, 1400);
+
+/* ══════════════════════════════════════════════
+   SPARKLINE BARS
+══════════════════════════════════════════════ */
+const spark = document.getElementById('sparkline');
+for(let i=0;i<24;i++){
+  const b = document.createElement('div');
+  b.className = 'spark-bar';
+  b.style.height = (4+Math.random()*24)+'px';
+  b.style.animationDelay = (Math.random()*1.6)+'s';
+  b.style.animationDuration = (0.8+Math.random()*1.2)+'s';
+  spark.appendChild(b);
+}
+setInterval(()=>{
+  spark.querySelectorAll('.spark-bar').forEach(b=>{
+    b.style.height = (4+Math.random()*24)+'px';
+  });
+}, 600);
+
+/* ══════════════════════════════════════════════
+   DATA STREAM
+══════════════════════════════════════════════ */
+const streamEl = document.getElementById('dataStream');
+const streamPhrases = [
+  ()=>`0x${Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0').toUpperCase()} › NEURAL PACKET OK`,
+  ()=>`CPU[${Math.floor(Math.random()*4)}]: ${(Math.random()*90+5).toFixed(1)}%`,
+  ()=>`MEM[${Math.floor(Math.random()*0xF000+0x1000).toString(16).toUpperCase()}] ALLOC`,
+  ()=>`STREAM ${Math.floor(Math.random()*999).toString().padStart(3,'0')} › INTEGRITY OK`,
+  ()=>`PING ${Math.floor(Math.random()*200+10)}ms › NODE_${Math.floor(Math.random()*16).toString(16).toUpperCase()}`,
+  ()=>`SYS_EVENT: ${['HEARTBEAT','AUTH_CHECK','CACHE_FLUSH','LOG_ROTATE'][Math.floor(Math.random()*4)]}`,
+  ()=>`HASH: ${Array.from({length:8},()=>Math.floor(Math.random()*16).toString(16)).join('').toUpperCase()}`,
+];
+setInterval(()=>{
+  const line = document.createElement('div');
+  line.textContent = streamPhrases[Math.floor(Math.random()*streamPhrases.length)]();
+  streamEl.appendChild(line);
+  if(streamEl.children.length > 20) streamEl.removeChild(streamEl.children[0]);
+}, 280);
+
+/* ══════════════════════════════════════════════
+   HEADER STATUS ROTATION
+══════════════════════════════════════════════ */
+const hStatuses = [
+  'ALL MODULES NOMINAL','INFERENCE CORE ACTIVE','NEURAL PATHWAYS CLEAR',
+  'MONITORING SUBSYSTEMS','AWAITING DIRECTIVES','SECURITY SCAN NOMINAL'
+];
+let hIdx = 0;
+setInterval(()=>{
+  hIdx = (hIdx+1)%hStatuses.length;
+  document.getElementById('headerStatus').textContent = hStatuses[hIdx];
+}, 4500);
+
+/* ══════════════════════════════════════════════
+   AUTH
+══════════════════════════════════════════════ */
+function handleAuthChange(){
+  const mode = document.getElementById('authMode').value;
+  const field = document.getElementById('apiKeyField');
+  const badge = document.getElementById('authBadge');
+  if(mode === 'premium'){
+    field.style.display = 'none';
+    badge.textContent = 'VERIFIED';
+    badge.className = 'status-badge badge-online';
+  } else {
+    field.style.display = 'block';
+    badge.textContent = 'REQUIRED';
+    badge.className = 'status-badge badge-warn';
+  }
+}
+document.getElementById('apiKey').addEventListener('input', function(){
+  const badge = document.getElementById('authBadge');
+  if(this.value.length > 10){
+    badge.textContent = 'ACTIVE';
+    badge.className = 'status-badge badge-online';
+  } else {
+    badge.textContent = 'REQUIRED';
+    badge.className = 'status-badge badge-warn';
+  }
+});
+
+/* ══════════════════════════════════════════════
+   TEXTAREA AUTO-RESIZE
+══════════════════════════════════════════════ */
+const cmdInput = document.getElementById('cmdInput');
+cmdInput.addEventListener('input',()=>{
+  cmdInput.style.height='auto';
+  cmdInput.style.height = Math.min(cmdInput.scrollHeight,100)+'px';
+});
+cmdInput.addEventListener('keydown',(e)=>{
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); executeCommand(); }
+  if(e.key==='ArrowUp'&&!cmdInput.value&&lastCmd){
+    cmdInput.value=lastCmd;
+    cmdInput.style.height='auto';
+    cmdInput.style.height=Math.min(cmdInput.scrollHeight,100)+'px';
+  }
+});
+
+/* ══════════════════════════════════════════════
+   RESPONSE BANK
+══════════════════════════════════════════════ */
+const responses = {
+  notion:  ['Accessing Notion workspace... 7 open tasks across 3 active projects. Priority: Q3 Report (due tomorrow), Contractor review (overdue 2 days). Shall I prepare a briefing?',
+            'Notion sync complete. 23 active pages catalogued. 4 items lack assigned due dates — recommend immediate triage. Initiate?'],
+  email:   ['Inbox scan complete. 14 unread messages detected. Priority flags: legal team re: contract (HIGH), client re: timeline (HIGH). Composing draft responses — stand by.',
+            'Email module active. 47 messages processed, 6 require action. Top items: invoice approval pending, meeting rescheduled Friday, new partnership inquiry awaiting response.'],
+  social:  ['Social automation report: LinkedIn — 3 connection requests pending, engagement +12%. X/Twitter — optimal window 09:00–11:00 local. Content queue has capacity for 3 posts. Proceed?'],
+  diag:    ['Running full system diagnostic...\n\n[✓] Core processor: nominal\n[✓] Memory allocation: 84% available\n[✓] API connections: 2/4 active\n[!] Notion token: re-authentication advisory\n[✓] Avg response latency: 142ms\n[✓] Security posture: GREEN\n\nDiagnostic complete. One advisory issued.'],
   default: [
-    "Command acknowledged. Processing your request through primary neural pathways.",
-    "Understood. Routing through available modules now. Stand by.",
-    "Affirmative. Executing task sequence. This will take a moment.",
-    "Request received and logged. Interfacing with relevant systems now.",
+    'Command acknowledged. Routing through primary neural pathways — processing now.',
+    'Understood, operator. Interfacing with available subsystems. Stand by.',
+    'Affirmative. Task sequence initiated. Estimated resolution in 1.4 seconds.',
+    'Request logged and prioritized. Executing through available modules now.',
+    'Neural pattern matched. Formulating optimal response — stand by for output.',
   ]
 };
 
-// ══════════════════════════════════════
-//  UPTIME + HEADER ROTATION
-// ══════════════════════════════════════
-setInterval(() => {
-  const e = Math.floor((Date.now() - startTime) / 1000);
-  document.getElementById('uptimeClock').textContent =
-    `${String(Math.floor(e/3600)).padStart(2,'0')}:${String(Math.floor((e%3600)/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
-}, 1000);
-
-const statusMessages = ['NEURAL INTERFACE ACTIVE','AWAITING DIRECTIVES','ALL SYSTEMS NOMINAL','VOICE MODULE READY','READY FOR TASK EXECUTION'];
-let statusIdx = 0;
-setTimeout(() => {
-  document.getElementById('headerSub').textContent = statusMessages[0];
-  setInterval(() => {
-    statusIdx = (statusIdx + 1) % statusMessages.length;
-    document.getElementById('headerSub').textContent = statusMessages[statusIdx];
-  }, 5000);
-}, 800);
-
-// ══════════════════════════════════════
-//  SPEECH SYNTHESIS SETUP
-// ══════════════════════════════════════
-let voices = [];
-function loadVoices() {
-  voices = speechSynthesis.getVoices();
-  const sel = document.getElementById('voiceSelect');
-  sel.innerHTML = '';
-  // Prefer deeper / male-sounding voices
-  const preferred = voices.filter(v =>
-    v.name.match(/david|james|daniel|george|fred|alex|uk english male|male|mark|richard/i)
-  );
-  const all = preferred.length ? preferred : voices;
-  all.forEach((v, i) => {
-    const opt = document.createElement('option');
-    opt.value = v.name;
-    opt.textContent = v.name.substring(0, 22);
-    sel.appendChild(opt);
-  });
-  // Try to default to a deep voice
-  const deep = voices.find(v => v.name.match(/david|daniel|james|george|uk english male/i));
-  if (deep) sel.value = deep.name;
-}
-if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
-loadVoices();
-
-function getSelectedVoice() {
-  const name = document.getElementById('voiceSelect').value;
-  return voices.find(v => v.name === name) || voices[0];
-}
-
-function speakText(btnEl, text) {
-  if (!window.speechSynthesis) { showToast('⚠ Speech synthesis not supported in this browser'); return; }
-  stopSpeaking();
-
-  const clean = text.replace(/<[^>]*>/g,'').replace(/\[.*?\]/g,'').trim();
-  currentUtterance = new SpeechSynthesisUtterance(clean);
-  currentUtterance.voice = getSelectedVoice();
-  currentUtterance.rate = parseFloat(document.getElementById('voiceRate').value);
-  currentUtterance.pitch = parseFloat(document.getElementById('voicePitch').value);
-  currentUtterance.volume = 1;
-
-  currentUtterance.onstart = () => {
-    isSpeaking = true;
-    setVoiceState('speaking');
-    if (btnEl) { btnEl.classList.add('active'); btnEl.textContent = ''; btnEl.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg> STOP'; }
-  };
-  currentUtterance.onend = currentUtterance.onerror = () => {
-    isSpeaking = false;
-    setVoiceState('idle');
-    if (btnEl) { btnEl.classList.remove('active'); btnEl.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> SPEAK'; }
-  };
-
-  speechSynthesis.speak(currentUtterance);
-}
-
-function stopSpeaking() {
-  if (speechSynthesis.speaking) {
-    speechSynthesis.cancel();
-    isSpeaking = false;
-    setVoiceState('idle');
-  }
-}
-
-// ══════════════════════════════════════
-//  SPEECH RECOGNITION SETUP
-// ══════════════════════════════════════
-function initRecognition() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    const s = document.getElementById('voiceModuleStatus');
-    s.textContent = 'OFFLINE'; s.className = 'status-val offline';
-    document.getElementById('voiceStatusText').textContent = 'NOT SUPPORTED';
-    document.getElementById('voiceStatusSub').textContent = 'Use Chrome/Edge browser';
-    return false;
-  }
-  recognition = new SR();
-  recognition.continuous = false;
-  recognition.interimResults = true;
-  recognition.lang = 'en-US';
-  recognition.maxAlternatives = 1;
-
-  recognition.onstart = () => {
-    isListening = true;
-    setVoiceState('listening');
-    startMicVisualizer();
-  };
-
-  recognition.onresult = (e) => {
-    let interim = '', final = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) final += e.results[i][0].transcript;
-      else interim += e.results[i][0].transcript;
-    }
-    const preview = document.getElementById('transcriptPreview');
-    if (preview) preview.textContent = final || interim;
-    if (final) {
-      document.getElementById('userInput').value = final.trim();
-      document.getElementById('userInput').style.height = 'auto';
-    }
-  };
-
-  recognition.onend = () => {
-    isListening = false;
-    stopMicVisualizer();
-    setVoiceState('idle');
-    hideVoiceOverlay();
-    // Auto-send if there's content
-    const val = document.getElementById('userInput').value.trim();
-    if (val) setTimeout(() => sendMessage(), 300);
-  };
-
-  recognition.onerror = (e) => {
-    isListening = false;
-    stopMicVisualizer();
-    setVoiceState('idle');
-    hideVoiceOverlay();
-    if (e.error !== 'aborted') showToast(`⚠ MIC ERROR: ${e.error.toUpperCase()}`);
-  };
-
-  const s = document.getElementById('voiceModuleStatus');
-  s.textContent = 'ONLINE'; s.className = 'status-val online';
-  return true;
-}
-
-function toggleMic() {
-  if (isListening) {
-    cancelVoice();
-  } else {
-    if (!recognition && !initRecognition()) return;
-    stopSpeaking();
-    showVoiceOverlay();
-    try { recognition.start(); }
-    catch(e) { hideVoiceOverlay(); showToast('⚠ Could not start microphone'); }
-  }
-}
-
-function cancelVoice() {
-  if (recognition && isListening) recognition.abort();
-  isListening = false;
-  stopMicVisualizer();
-  setVoiceState('idle');
-  hideVoiceOverlay();
-}
-
-// ══════════════════════════════════════
-//  VOICE STATE MANAGEMENT
-// ══════════════════════════════════════
-function setVoiceState(state) {
-  const micBtn = document.getElementById('micBtn');
-  const inputMicBtn = document.getElementById('inputMicBtn');
-  const statusText = document.getElementById('voiceStatusText');
-  const statusSub = document.getElementById('voiceStatusSub');
-  const stopBtn = document.getElementById('stopSpeakBtn');
-  const viz = document.getElementById('voiceViz');
-  const reactor = document.getElementById('reactorCore');
-  const overlayTitle = document.getElementById('overlayTitle');
-  const overlaySub = document.getElementById('overlaySub');
-
-  micBtn.className = 'mic-btn';
-  inputMicBtn.className = 'input-mic-btn';
-  viz.className = 'voice-visualizer';
-  reactor.classList.remove('speaking');
-  stopBtn.classList.remove('visible');
-
-  if (state === 'listening') {
-    micBtn.classList.add('listening');
-    inputMicBtn.classList.add('active');
-    viz.classList.add('listening');
-    statusText.textContent = 'LISTENING';
-    statusSub.textContent = 'Speak your command...';
-    overlayTitle.textContent = 'LISTENING';
-    overlaySub.textContent = 'SPEAK YOUR COMMAND...';
-    document.getElementById('orbCore').classList.remove('speaking-orb');
-    document.getElementById('inputRow').classList.add('recording');
-    animateVizBars(viz.querySelectorAll('.v-bar'));
-  } else if (state === 'speaking') {
-    micBtn.classList.add('speaking');
-    viz.classList.add('speaking');
-    reactor.classList.add('speaking');
-    stopBtn.classList.add('visible');
-    statusText.textContent = 'SPEAKING';
-    statusSub.textContent = 'Click stop to interrupt';
-    document.getElementById('inputRow').classList.remove('recording');
-    animateVizBars(viz.querySelectorAll('.v-bar'));
-  } else {
-    statusText.textContent = 'MIC STANDBY';
-    statusSub.textContent = 'Click mic to activate';
-    document.getElementById('inputRow').classList.remove('recording');
-    viz.querySelectorAll('.v-bar').forEach(b => b.style.height = '4px');
-    if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
-  }
-}
-
-// ══════════════════════════════════════
-//  VOICE OVERLAY
-// ══════════════════════════════════════
-function showVoiceOverlay() {
-  document.getElementById('voiceOverlay').classList.add('active');
-  document.getElementById('transcriptPreview').textContent = '';
-  animateOrbBars();
-}
-function hideVoiceOverlay() {
-  document.getElementById('voiceOverlay').classList.remove('active');
-  if (orbAnimFrame) { cancelAnimationFrame(orbAnimFrame); orbAnimFrame = null; }
-}
-
-let orbAnimFrame = null;
-function animateOrbBars() {
-  const bars = document.getElementById('orbBars').querySelectorAll('.orb-bar');
-  function tick() {
-    bars.forEach(b => {
-      const h = isListening
-        ? 6 + Math.random() * 30
-        : isSpeaking ? 4 + Math.random() * 22 : 4;
-      b.style.height = h + 'px';
-    });
-    orbAnimFrame = requestAnimationFrame(tick);
-  }
-  tick();
-}
-
-// ══════════════════════════════════════
-//  MIC VISUALIZER (Web Audio API)
-// ══════════════════════════════════════
-function startMicVisualizer() {
-  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-    micStream = stream;
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 64;
-    const src = audioCtx.createMediaStreamSource(stream);
-    src.connect(analyser);
-    const data = new Uint8Array(analyser.frequencyBinCount);
-    const orbBars = document.getElementById('orbBars').querySelectorAll('.orb-bar');
-
-    function draw() {
-      if (!isListening) return;
-      analyser.getByteFrequencyData(data);
-      orbBars.forEach((b, i) => {
-        const val = data[i * 2] || 0;
-        b.style.height = Math.max(4, val / 6) + 'px';
-      });
-      animFrame = requestAnimationFrame(draw);
-    }
-    draw();
-  }).catch(() => {
-    // Fallback to random animation — permission denied or not available
-    animateOrbBars();
-  });
-}
-
-function stopMicVisualizer() {
-  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
-  if (audioCtx) { audioCtx.close(); audioCtx = null; }
-  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
-}
-
-function animateVizBars(bars) {
-  function tick() {
-    if (!isListening && !isSpeaking) return;
-    bars.forEach(b => {
-      b.style.height = (4 + Math.random() * 28) + 'px';
-    });
-    setTimeout(tick, 80);
-  }
-  tick();
-}
-
-// ══════════════════════════════════════
-//  CHAT LOGIC
-// ══════════════════════════════════════
-function getTime() {
-  const e = Math.floor((Date.now() - startTime) / 1000);
-  return `${String(Math.floor(e/3600)).padStart(2,'0')}:${String(Math.floor((e%3600)/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
-}
-
-function getResponse(text) {
+function getResponse(text){
   const t = text.toLowerCase();
-  if (t.includes('notion') || t.includes('task')) return pick(RESPONSES.notion);
-  if (t.includes('email') || t.includes('inbox')) return pick(RESPONSES.email);
-  if (t.includes('social') || t.includes('twitter') || t.includes('linkedin')) return pick(RESPONSES.social);
-  if (t.includes('diagnostic') || t.includes('system')) return pick(RESPONSES.diagnostic);
-  return pick(RESPONSES.default) + ` Processing: "${text}"`;
+  if(t.match(/notion|task|board|page/)) return pick(responses.notion);
+  if(t.match(/email|inbox|mail|message/)) return pick(responses.email);
+  if(t.match(/social|twitter|linkedin|post|content/)) return pick(responses.social);
+  if(t.match(/diag|system|status|test|check/)) return pick(responses.diag);
+  return pick(responses.default) + `\n\nProcessing directive: "${text}"`;
 }
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-function appendMsg(role, text, time) {
+/* ══════════════════════════════════════════════
+   TYPEWRITER EFFECT
+══════════════════════════════════════════════ */
+function typeWriter(el, text, speed=18){
+  return new Promise(resolve=>{
+    let i=0;
+    const cursor = document.createElement('span');
+    cursor.className='cursor';
+    el.appendChild(cursor);
+
+    function type(){
+      if(i < text.length){
+        cursor.insertAdjacentText('beforebegin', text[i] === '\n' ? '' : text[i]);
+        if(text[i]==='\n') cursor.insertAdjacentHTML('beforebegin','<br>');
+        i++;
+        setTimeout(type, text[i-1]==='\n' ? 80 : speed + Math.random()*14);
+      } else {
+        cursor.remove();
+        resolve();
+      }
+    }
+    type();
+  });
+}
+
+/* ══════════════════════════════════════════════
+   APPEND MESSAGE
+══════════════════════════════════════════════ */
+function appendMsg(role, text, useTypewriter=false){
   const msgs = document.getElementById('messages');
   const div = document.createElement('div');
   div.className = `msg ${role}`;
-  const speakBtnHtml = role === 'jarvis'
-    ? `<button class="msg-speak-btn" onclick="speakText(this, '${text.replace(/'/g,"\\'")}')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> SPEAK</button>`
-    : '';
+
+  const ts = getTimeStr();
+  const glyph = role==='jarvis'?'JRV':'OPR';
+  const labelText = role==='jarvis'
+    ? `J.A.R.V.I.S // ${ts} // RESPONSE TRANSMITTED`
+    : `OPERATOR // ${ts} // DIRECTIVE ISSUED`;
+
   div.innerHTML = `
-    <div class="msg-avatar">${role === 'jarvis' ? 'JRV' : 'YOU'}</div>
+    <div class="msg-glyph">${glyph}</div>
     <div class="msg-body">
-      <div class="msg-meta">${role === 'jarvis' ? 'JARVIS' : 'OPERATOR'} // ${time}</div>
-      <div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div>
-      ${speakBtnHtml}
+      <div class="msg-label">${labelText}</div>
+      <div class="msg-bubble"></div>
     </div>`;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
+
+  const bubble = div.querySelector('.msg-bubble');
+
+  if(useTypewriter){
+    return typeWriter(bubble, text, 16).then(()=>{ msgs.scrollTop=msgs.scrollHeight; });
+  } else {
+    bubble.textContent = text;
+    return Promise.resolve();
+  }
 }
 
-function showToast(msg, duration=2800) {
-  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), duration);
-}
-
-function toggleTierInput() {
-  const tier = document.getElementById('tierSelect').value;
-  document.getElementById('apiKeyGroup').style.display = tier === 'sub' ? 'none' : '';
-  showToast(tier === 'sub' ? '⚡ PREMIUM TIER ACTIVATED' : '🔑 BYOK MODE — API KEY REQUIRED');
-}
-
-function sendQuick(text) {
-  document.getElementById('userInput').value = text;
-  sendMessage();
-}
-
-function sendMessage() {
-  const input = document.getElementById('userInput');
+/* ══════════════════════════════════════════════
+   EXECUTE COMMAND
+══════════════════════════════════════════════ */
+function executeCommand(){
+  if(isProcessing) return;
+  const input = document.getElementById('cmdInput');
   const text = input.value.trim();
-  if (!text) return;
-  const tier = document.getElementById('tierSelect').value;
-  if (tier === 'byok' && !document.getElementById('userApiKey').value) {
-    showToast('⚠ API KEY REQUIRED — Check sidebar configuration'); input.focus(); return;
+  if(!text) return;
+
+  const mode = document.getElementById('authMode').value;
+  const key  = document.getElementById('apiKey').value;
+  if(mode==='byok' && !key){
+    appendMsg('jarvis','⚠ AUTH FAILURE — No API key detected in configuration panel. Please provide your Gemini API key to proceed.');
+    return;
   }
-  lastCommand = text;
-  appendMsg('user', text, getTime());
-  input.value = ''; input.style.height = 'auto';
-  msgCount++; document.getElementById('msgCount').textContent = String(msgCount).padStart(2,'0');
 
-  const typing = document.getElementById('typingIndicator');
-  const waveform = document.getElementById('waveform');
-  typing.classList.add('visible'); waveform.classList.add('active');
-  document.getElementById('messages').scrollTop = 99999;
+  isProcessing = true;
+  lastCmd = text;
+  appendMsg('user', text, false);
+  input.value=''; input.style.height='auto';
+  exchangeCount++;
+  document.getElementById('t3').textContent = exchangeCount;
 
-  setTimeout(() => {
-    typing.classList.remove('visible'); waveform.classList.remove('active');
-    const response = getResponse(text);
-    appendMsg('jarvis', response, getTime());
-    msgCount++; document.getElementById('msgCount').textContent = String(msgCount).padStart(2,'0');
+  // Show typing
+  const typingRow = document.getElementById('typingRow');
+  typingRow.classList.add('visible');
+  document.getElementById('messages').scrollTop=99999;
+  document.getElementById('execBtn').disabled=true;
+  document.getElementById('execBtn').textContent='[ PROCESSING ]';
 
-    // Auto-speak if enabled
-    if (document.getElementById('autoSpeakToggle').checked) {
-      setTimeout(() => {
-        const lastSpeakBtn = document.querySelectorAll('.msg-speak-btn');
-        const btn = lastSpeakBtn[lastSpeakBtn.length - 1];
-        if (btn) speakText(btn, response);
-      }, 200);
-    }
-  }, 900 + Math.random() * 700);
+  const delay = 900 + Math.random()*800;
+  setTimeout(async ()=>{
+    typingRow.classList.remove('visible');
+    const resp = getResponse(text);
+    await appendMsg('jarvis', resp, true);
+    isProcessing=false;
+    document.getElementById('execBtn').disabled=false;
+    document.getElementById('execBtn').textContent='[ EXECUTE ]';
+  }, delay);
 }
-
-// ── Textarea resize + keyboard shortcuts ──
-const textarea = document.getElementById('userInput');
-textarea.addEventListener('input', () => {
-  textarea.style.height = 'auto';
-  textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-});
-textarea.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  if (e.key === 'ArrowUp' && !textarea.value && lastCommand) {
-    textarea.value = lastCommand;
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-  }
-});
-
-// ── Init ──
-window.addEventListener('load', () => {
-  initRecognition();
-  setTimeout(loadVoices, 500);
-});
 </script>
 </body>
 </html>
